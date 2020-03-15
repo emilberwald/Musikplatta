@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WintabDN", "WintabDN\Wintab
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musikplatta", "Musikplatta\Musikplatta.csproj", "{20560B39-2EB4-4ADD-A642-65751487D0C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpWintab", "SharpWintab\SharpWintab.csproj", "{36924621-6A64-4725-8495-F585EAE4CABD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpWintab", "SharpWintab\SharpWintab.csproj", "{36924621-6A64-4725-8495-F585EAE4CABD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

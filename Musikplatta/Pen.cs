@@ -6,7 +6,6 @@ using WintabDN;
 namespace Musikplatta
 {
     public interface ITouch : IDisposable { };
-
     public class Pen : ITouch
     {
         private bool disposedValue = false;

@@ -1,7 +1,24 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SharpGenMapping Include="Mapping.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SharpGen.Runtime" Version="1.2.0" />
+    <PackageReference Include="SharpGen.Runtime.COM" Version="1.2.0" />
+    <PackageReference Include="SharpGenTools.Sdk" Version="1.2.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
 
 </Project>

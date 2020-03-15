@@ -1,6 +1,68 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<config id="MyMapping" xmlns="urn:SharpGen.Config">
+<config id="SharpWT" xmlns="urn:SharpGen.Config">
   <assembly>SharpWintab</assembly>
   <namespace>SharpWintab.Wintab</namespace>
   <depends>SharpGen.Runtime</depends>
+  <depends>SharpGen.Runtime.COM</depends>
+  <sdk name="StdLib" />
+  <sdk name="WindowsSdk" version="10.0.18362.0" />
+  <bindings>
+    <!-- Primitive bindings -->
+    <bind from="HWND" to="System.Int32" />
+  </bindings>
+  <include-dir override="true">$(THIS_CONFIG_PATH)</include-dir>
+  <include-prolog>
+  </include-prolog>
+  <include file="Windows.h" attach="false" />
+  <include file="WINTAB.H" namespace="SharpWintab.Wintab" attach="true" />
+  <include file="PKTDEF.H" namespace="SharpWintab.Wintab" attach="true" />
+  <extension>
+    <create class="SharpWintab.Wintab.Functions" visibility="public static" />
+  </extension>
+  <mapping>
+    <map dll='"Wintab32.dll"' function="WTInfoA" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTInfoW" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTOpenA" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTOpenW" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTClose" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTPacketsGet" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTPacket" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTEnable" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTOverlap" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTConfig" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTGetA" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTGetW" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTSetA" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTSetW" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTExtGet" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTExtSet" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTSave" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTRestore" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTPacketsPeek" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTDataGet" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTDataPeek" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTQueueSizeGet" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTQueueSizeSet" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrOpen" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrClose" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrContextEnum" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrContextOwner" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrDefContext" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrDefContextEx" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrDeviceConfig" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrExt" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrCsrEnable" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrCsrButtonMap" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrCsrPressureBtnMarks" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrCsrPressureResponse" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrCsrExt" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTQueuePacketsEx" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrConfigReplaceExA" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrConfigReplaceExW" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrPacketHookExA" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrPacketHookExW" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrPacketUnhook" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrPacketHookNext" group="SharpWintab.Wintab.Functions" />
+    <map dll='"Wintab32.dll"' function="WTMgrCsrPressureBtnMarksEx" group="SharpWintab.Wintab.Functions" />
+  </mapping>
 </config>
