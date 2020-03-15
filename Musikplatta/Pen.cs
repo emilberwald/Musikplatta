@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Serilog;
 using WintabDN;
 
@@ -18,9 +19,22 @@ namespace Musikplatta
         {
             this.log = log;
             this.wtContext = CWintabInfo.GetDefaultDigitizingContext(ECTXOptionValues.CXO_MESSAGES);
-            this.wtContext.PktData |= (WTPKT)Math.Clamp(CWintabExtensions.GetWTExtensionMask(EWTXExtensionTag.WTX_EXPKEYS2), 0, byte.MaxValue);
-            this.wtContext.PktData |= (WTPKT)Math.Clamp(CWintabExtensions.GetWTExtensionMask(EWTXExtensionTag.WTX_TOUCHRING), 0, byte.MaxValue);
-            this.wtContext.PktData |= (WTPKT)Math.Clamp(CWintabExtensions.GetWTExtensionMask(EWTXExtensionTag.WTX_TOUCHSTRIP), 0, byte.MaxValue);
+            var extensionMasks = new Dictionary<EWTXExtensionTag, uint>
+            {
+                { EWTXExtensionTag.WTX_TOUCHSTRIP, CWintabExtensions.GetWTExtensionMask(EWTXExtensionTag.WTX_TOUCHSTRIP) },
+                { EWTXExtensionTag.WTX_TOUCHRING, CWintabExtensions.GetWTExtensionMask(EWTXExtensionTag.WTX_TOUCHRING) },
+                { EWTXExtensionTag.WTX_EXPKEYS2, CWintabExtensions.GetWTExtensionMask(EWTXExtensionTag.WTX_EXPKEYS2) },
+            };
+
+            foreach (var (extensionTag, extensionMask) in extensionMasks)
+            {
+                if (extensionMask > 0)
+                {
+                    this.log.Information("Enabling {extensionTag}.", extensionTag);
+                    this.wtContext.PktData |= (WTPKT)extensionMask;
+                }
+            }
+
             if (!this.wtContext.Open())
             {
                 throw new InvalidOperationException("Failed to open context.");
@@ -72,7 +86,7 @@ namespace Musikplatta
             }
         }
 
-        private static string ControlName(EWTXExtensionTag extTagIndex_I, byte controlIndex, byte functionIndex) => extTagIndex_I switch
+        private static string ControlName(EWTXExtensionTag extTagIndex_I, byte controlIndex, uint functionIndex) => extTagIndex_I switch
         {
             EWTXExtensionTag.WTX_EXPKEYS2 => "EK: " + Convert.ToString(controlIndex),
             EWTXExtensionTag.WTX_TOUCHRING => "TR: " + Convert.ToString(functionIndex),
@@ -87,36 +101,33 @@ namespace Musikplatta
                 this.RemoveOverrides();
             }
             this.log.Information("AddOverrides");
-            foreach (var tabletIndex in CWintabInfo.GetFoundDevicesIndexList())
+            foreach (byte tabletIndex in CWintabInfo.GetFoundDevicesIndexList())
             {
                 foreach (EWTXExtensionTag extTagIndex in Enum.GetValues(typeof(EWTXExtensionTag)))
                 {
-                    UInt32 numCtrls = default;
-                    UInt32 numFuncs = default;
-                    byte controlIndex = default;
-                    byte functionIndex = default;
-
+                    uint numCtrls = default;
                     CWintabExtensions.ControlPropertyGet(
                     this.wtContext.HCtx,
                     (byte)extTagIndex,
                     tabletIndex,
-                    controlIndex,
-                    functionIndex,
+                    0,
+                    0,
                     (ushort)EWTExtensionTabletProperty.TABLET_PROPERTY_CONTROLCOUNT,
                     ref numCtrls);
 
-                    for (controlIndex = 0; controlIndex < numCtrls; controlIndex++)
+                    for (byte controlIndex = 0; controlIndex < numCtrls; controlIndex++)
                     {
+                        uint numFuncs = default;
                         CWintabExtensions.ControlPropertyGet(
                         this.wtContext.HCtx,
                         (byte)extTagIndex,
                         tabletIndex,
                         controlIndex,
-                        functionIndex,
+                        0,
                         (ushort)EWTExtensionTabletProperty.TABLET_PROPERTY_FUNCCOUNT,
                         ref numFuncs);
 
-                        for (functionIndex = 0; functionIndex < numFuncs; functionIndex++)
+                        for (uint functionIndex = 0; functionIndex < numFuncs; functionIndex++)
                         {
                             this.Override(tabletIndex, extTagIndex, functionIndex, controlIndex);
                         }
@@ -147,9 +158,9 @@ namespace Musikplatta
             };
         }
 
-        private void Override(byte tabletIndex, EWTXExtensionTag extTagIndex, byte functionIndex, byte controlIndex)
+        private void Override(byte tabletIndex, EWTXExtensionTag extTagIndex, uint functionIndex, byte controlIndex)
         {
-            uint propOverride = 1;  // true
+            uint PropertyOverride = 1;
             string Name = ControlName(extTagIndex, controlIndex, functionIndex);
             uint Available = default;
             uint Location = default;
@@ -161,58 +172,81 @@ namespace Musikplatta
             (byte)extTagIndex,
             tabletIndex,
             controlIndex,
-            functionIndex,
+            (byte)functionIndex,
             (ushort)EWTExtensionTabletProperty.TABLET_PROPERTY_AVAILABLE,
             ref Available);
 
             if (Available > 0)
             {
-                CWintabExtensions.ControlPropertySet(
+                if (!CWintabExtensions.ControlPropertySet(
                 this.wtContext.HCtx,
                 (byte)extTagIndex,
                 tabletIndex,
                 controlIndex,
-                functionIndex,
+                (byte)functionIndex,
                 (ushort)EWTExtensionTabletProperty.TABLET_PROPERTY_OVERRIDE,
-                propOverride);
+                PropertyOverride))
+                {
+                    this.log.Warning("TABLET_PROPERTY_OVERRIDE failed.");
+                }
 
-                CWintabExtensions.ControlPropertySet(
+                if (!CWintabExtensions.ControlPropertySet(
                 this.wtContext.HCtx,
                 (byte)extTagIndex,
                 tabletIndex,
                 controlIndex,
-                functionIndex,
+                (byte)functionIndex,
                 (ushort)EWTExtensionTabletProperty.TABLET_PROPERTY_OVERRIDE_NAME,
-                Name);
+                Name))
+                {
+                    this.log.Warning("TABLET_PROPERTY_OVERRIDE_NAME failed.");
+                }
 
-                CWintabExtensions.ControlPropertyGet(
+                if (!CWintabExtensions.ControlPropertyGet(
                 this.wtContext.HCtx,
                 (byte)extTagIndex,
                 tabletIndex,
                 controlIndex,
-                functionIndex,
+                (byte)functionIndex,
                 (ushort)EWTExtensionTabletProperty.TABLET_PROPERTY_LOCATION,
-                ref Location);
+                ref Location))
+                {
+                    this.log.Warning("TABLET_PROPERTY_LOCATION failed.");
+                }
 
-                CWintabExtensions.ControlPropertyGet(
+                if (!CWintabExtensions.ControlPropertyGet(
                 this.wtContext.HCtx,
                 (byte)extTagIndex,
                 tabletIndex,
                 controlIndex,
-                functionIndex,
+                (byte)functionIndex,
                 (ushort)EWTExtensionTabletProperty.TABLET_PROPERTY_MIN,
-                ref MinRange);
+                ref MinRange))
+                {
+                    this.log.Warning("TABLET_PROPERTY_MIN failed.");
+                }
 
-                CWintabExtensions.ControlPropertyGet(
+                if (!CWintabExtensions.ControlPropertyGet(
                 this.wtContext.HCtx,
                 (byte)extTagIndex,
                 tabletIndex,
                 controlIndex,
-                functionIndex,
+                (byte)functionIndex,
                 (ushort)EWTExtensionTabletProperty.TABLET_PROPERTY_MAX,
-                ref MaxRange);
+                ref MaxRange))
+                {
+                    this.log.Warning("TABLET_PROPERTY_MAX failed.");
+                }
 
                 this.log.Information("OVERRIDDEN: {deviceIdx}, {extensionTagIdx}, {controlIdx}, {functionIdx}", tabletIndex, extTagIndex, controlIndex, functionIndex);
+                this.log.Information("{@params}", new
+                {
+                    PropertyOverride,
+                    Name,
+                    Location,
+                    MinRange,
+                    MaxRange
+                });
                 this.HasOverrides = true;
             }
             else
@@ -226,12 +260,12 @@ namespace Musikplatta
             if (this.HasOverrides)
             {
                 this.log.Information("RemoveOverrides");
-                foreach (var tabletIndex in CWintabInfo.GetFoundDevicesIndexList())
+                foreach (byte tabletIndex in CWintabInfo.GetFoundDevicesIndexList())
                 {
-                    foreach (var extTagIndex in Enum.GetValues(typeof(EWTXExtensionTag)))
+                    foreach (EWTXExtensionTag extTagIndex in Enum.GetValues(typeof(EWTXExtensionTag)))
                     {
-                        UInt32 numCtrls = default;
-                        UInt32 numFuncs = default;
+                        uint numCtrls = default;
+                        uint numFuncs = default;
                         byte controlIndex = default;
                         byte functionIndex = default;
 
@@ -282,20 +316,22 @@ namespace Musikplatta
         /// </param>
         private void WinTabPacketEventHandler(object sender, MessageReceivedEventArgs eventArgs)
         {
-            //System.Diagnostics.Debug.WriteLine("Received WT_PACKET event");
+            try
+            {
+                this.log.Information(
+                    Enum.GetName(typeof(WindowsEventMessages), eventArgs.Message.Msg)
+                    ?? Enum.GetName(typeof(EWintabEventMessage), eventArgs.Message.Msg)
+                    ?? Convert.ToString(eventArgs.Message.Msg));
+            }
+            catch (Exception ex)
+            {
+                this.log.Error("{ex}", ex.ToString());
+            }
+
             if (this.wtData == null)
             {
                 return;
             }
-            try
-            {
-                    this.log.Information(
-                        Enum.GetName(typeof(WindowsEventMessages), eventArgs.Message.Msg)
-                        ?? Enum.GetName(typeof(EWintabEventMessage), eventArgs.Message.Msg)
-                        ?? Convert.ToString(eventArgs.Message.Msg));
-            }
-            catch { }
-
             try
             {
                 switch (eventArgs.Message.Msg)
@@ -411,6 +447,7 @@ namespace Musikplatta
                     {
                         uint hCtx = (uint)eventArgs.Message.LParam;
                         uint pktID = (uint)eventArgs.Message.WParam;
+                        this.log.Information("GetDataPacketExt({@context}, {@packetId})", hCtx, pktID);
                         var pktExt = this.wtData.GetDataPacketExt(hCtx, pktID);
                         this.log.Information("{packetExtension}", new
                         {

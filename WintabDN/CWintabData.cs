@@ -634,6 +634,8 @@ namespace WintabDN
                 MessageBox.Show("FAILED GetDataPacketExt: " + ex.ToString());
             }
 
+            CMemUtils.FreeUnmanagedBuf(buf);
+
             return packets[0];
         }
 
@@ -681,6 +683,8 @@ namespace WintabDN
                 packet.pkContext = 0;
 
             }
+            
+            CMemUtils.FreeUnmanagedBuf(buf);
 
             return packet;
         }
