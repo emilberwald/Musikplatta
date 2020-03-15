@@ -112,7 +112,7 @@ namespace Musikplatta
                     this.tabletIndices = CWintabInfo.GetFoundDevicesIndexList();
                     foreach (var tabletIndex in this.tabletIndices)
                     {
-                        foreach (var extTagIndex in new EWTXExtensionTag[] { })
+                        foreach (var extTagIndex in Enum.GetValues(typeof(EWTXExtensionTag)))
                         {
                             UInt32 numCtrls = default;
                             UInt32 numFuncs = default;
