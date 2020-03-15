@@ -256,7 +256,12 @@ namespace WintabDN
         /// Contains updated cursor orientation information. See the 
         /// WTOrientation structure for details.
         /// </summary>
-        public WTOrientation pkOrientation;         // ORIENTATION
+        public WTOrientation pkOrientation;         // PK_ORIENTATION
+
+        /// <summary>
+        /// Specifies cursor rotation informa­tion.
+        /// </summary>
+        public WTRotation pkRotation; // PK_ROTATION
     }
 
     /// <summary>
