@@ -6,10 +6,13 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!--<GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>SharpWintab.xml</DocumentationFile>-->
   </PropertyGroup>
 
   <ItemGroup>
-    <SharpGenMapping Include="Mapping.xml" />
+    <SharpGenMapping Include="Mapping.xml"/>
+    <!--<SharpGenExternalDocs Include="CodeComments.xml" />-->
   </ItemGroup>
 
   <ItemGroup>

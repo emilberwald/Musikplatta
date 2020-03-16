@@ -18,6 +18,33 @@
   <include file="PKTDEF.H" namespace="SharpWintab.Wintab" attach="true" />
   <extension>
     <create class="SharpWintab.Wintab.Functions" visibility="public static" />
+    <create-cpp macro="CRC_.*" enum="CRC" />
+    <create-cpp macro="CSR_.*" enum="CSR" />
+    <create-cpp macro="CTX_.*" enum="CTX" />
+    <create-cpp macro="CXL_.*" enum="CXL" />
+    <create-cpp macro="CXO_.*" enum="CXO" />
+    <create-cpp macro="CXS_.*" enum="CXS" />
+    <create-cpp macro="DVC_.*" enum="DVC" />
+    <create-cpp macro="EXT_.*" enum="EXT" />
+    <create-cpp macro="FIX_.*" enum="FIX" />
+    <create-cpp macro="HWC_.*" enum="HWC" />
+    <create-cpp macro="IFC_.*" enum="IFC" />
+    <create-cpp macro="LC_.*" enum="LC" />
+    <create-cpp macro="ORD_.*" enum="ORD" />
+    <create-cpp macro="PK_.*" enum="PK" />
+    <create-cpp macro="PKEXT_.*" enum="PKEXT" />
+    <create-cpp macro="SBN_.*" enum="SBN" />
+    <create-cpp macro="STA_.*" enum="STA" />
+    <create-cpp macro="TABLET_.*" enum="TABLET" />
+    <create-cpp macro="TBN_.*" enum="TBN" />
+    <create-cpp macro="TPS_.*" enum="TPS" />
+    <create-cpp macro="TU_.*" enum="TU" />
+    <create-cpp macro="WT_.*" enum="WT" />
+    <create-cpp macro="WTDC_.*" enum="WTDC" />
+    <create-cpp macro="WTH_.*" enum="WTH" />
+    <create-cpp macro="WTHC_.*" enum="WTHC" />
+    <create-cpp macro="WTI_.*" enum="WTI" />
+    <create-cpp macro="WTX_.*" enum="WTX" />
   </extension>
   <mapping>
     <map dll='"Wintab32.dll"' function="WTInfoA" group="SharpWintab.Wintab.Functions" />

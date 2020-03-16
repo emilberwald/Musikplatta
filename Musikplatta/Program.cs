@@ -11,7 +11,7 @@ namespace Musikplatta
         {
             services
                 .AddSingleton<ILogger>(new LoggerConfiguration().WriteTo.Console().WriteTo.File("log.txt", rollingInterval: RollingInterval.Hour).CreateLogger())
-                .AddSingleton<ITouch, Pen>()
+                .AddSingleton<ITouch, WintabDNPen>()
                 .AddSingleton<App>();
         }
 

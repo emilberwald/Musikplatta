@@ -6,7 +6,7 @@ using WintabDN;
 namespace Musikplatta
 {
     public interface ITouch : IDisposable { };
-    public class Pen : ITouch
+    public class WintabDNPen : ITouch
     {
         private bool disposedValue = false;
         private bool HasOverrides;
@@ -14,7 +14,7 @@ namespace Musikplatta
         private CWintabContext wtContext;
         private CWintabData wtData;
 
-        public Pen(ILogger log)
+        public WintabDNPen(ILogger log)
         {
             this.log = log;
             this.wtContext = CWintabInfo.GetDefaultDigitizingContext(ECTXOptionValues.CXO_MESSAGES);
@@ -55,7 +55,7 @@ namespace Musikplatta
         }
 
         // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        ~Pen()
+        ~WintabDNPen()
         {
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             this.Dispose(false);
