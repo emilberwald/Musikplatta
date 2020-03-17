@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
@@ -10,11 +12,12 @@ namespace Musikplatta
         private static void ConfigureServices(IServiceCollection services)
         {
             services
+                .AddSingleton<Form>()
                 .AddSingleton<ILogger>(new LoggerConfiguration().WriteTo.Console().WriteTo.File("log.txt", rollingInterval: RollingInterval.Hour).CreateLogger())
-                .AddSingleton<ITouch, WintabDNPen>()
-                .AddSingleton<App>();
+                .AddSingleton<IWintabPen>(x => new SharpWintabPen(x.GetRequiredService<ILogger>(), x.GetRequiredService<Form>()));
         }
 
+        [STAThread]
         private static void Main(string[] args)
         {
             var collection = new ServiceCollection();
@@ -25,8 +28,7 @@ namespace Musikplatta
             log.Information(string.Concat(Enumerable.Repeat("=", 80)));
             log.Information("Starting Musikplatta.");
             log.Information(string.Concat(Enumerable.Repeat("=", 80)));
-            using var app = serviceProvider.GetRequiredService<App>();
-            app.Run();
+            Application.Run();
         }
     }
 }

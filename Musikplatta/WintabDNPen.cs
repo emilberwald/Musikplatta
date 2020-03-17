@@ -5,8 +5,8 @@ using WintabDN;
 
 namespace Musikplatta
 {
-    public interface ITouch : IDisposable { };
-    public class WintabDNPen : ITouch
+    public interface IWintabPen : IDisposable { };
+    public class WintabDNPen : IWintabPen
     {
         private bool disposedValue = false;
         private bool HasOverrides;
