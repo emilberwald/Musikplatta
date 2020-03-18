@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Timers;
 using System.Windows.Forms;
 using Serilog;
-using Sharp.Wintab;
+using SharpWintab.Wintab;
 
 namespace Musikplatta
 {
@@ -498,7 +498,7 @@ namespace Musikplatta
                 }
             }
 
-            this.contextHandle = Sharp.Wintab.Functions.WTOpenA(Marshal.PtrToStructure<int>(this.Handle), ref this.context, true);
+            this.contextHandle = Functions.WTOpenA(Marshal.PtrToStructure<int>(this.Handle), ref this.context, true);
             if (this.contextHandle.Unused == 0)
             {
                 throw new SharpWintabException();
