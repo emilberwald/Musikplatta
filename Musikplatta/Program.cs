@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -28,7 +27,9 @@ namespace Musikplatta
             log.Information(string.Concat(Enumerable.Repeat("=", 80)));
             log.Information("Starting Musikplatta.");
             log.Information(string.Concat(Enumerable.Repeat("=", 80)));
-            Application.Run();
+
+            using var pen = serviceProvider.GetRequiredService<IWintabPen>();
+            Application.Run(serviceProvider.GetRequiredService<Form>());
         }
     }
 }

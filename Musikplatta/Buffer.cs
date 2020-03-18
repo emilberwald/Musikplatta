@@ -1,18 +1,26 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using Newtonsoft.Json;
 
 namespace Musikplatta
 {
     internal class Buffer<T> : IDisposable
     {
         private IntPtr buffer = IntPtr.Zero;
-
+        private int extra;
         private bool isDisposed = false;
+        private uint size;
 
         public Buffer()
         {
-            this.buffer = Marshal.AllocHGlobal(Marshal.SizeOf<T>());
+            this.size = (uint)Marshal.SizeOf<T>();
+            this.buffer = Marshal.AllocHGlobal((int)this.size);
+        }
+        public Buffer(int size) : this((uint)size) { }
+
+        public Buffer(uint size)
+        {
+            this.size = size;
+            this.buffer = Marshal.AllocHGlobal((int)this.size);
         }
 
         ~Buffer()
@@ -20,7 +28,7 @@ namespace Musikplatta
             this.Dispose(false);
         }
 
-        public int Size => Marshal.SizeOf<T>();
+        public uint Size => this.size;
 
         public static explicit operator T(Buffer<T> buffer)
         {
@@ -33,11 +41,6 @@ namespace Musikplatta
         {
             this.Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        public override string ToString()
-        {
-            return JsonConvert.SerializeObject((T)this);
         }
 
         protected virtual void Dispose(bool disposing)

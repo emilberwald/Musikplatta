@@ -11,17 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <SharpGenMapping Include="Mapping.xml"/>
+    <SharpGenMapping Include="Mapping.xml" />
     <!--<SharpGenExternalDocs Include="CodeComments.xml" />-->
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="SharpGen.Runtime" Version="1.2.0" />
-    <PackageReference Include="SharpGen.Runtime.COM" Version="1.2.0" />
-    <PackageReference Include="SharpGenTools.Sdk" Version="1.2.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
 </Project>
