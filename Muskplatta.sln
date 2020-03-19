@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WintabDN", "WintabDN\WintabDN.csproj", "{73EAE30A-60B9-43A5-AD81-9B05873E405C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Musikplatta", "Musikplatta\Musikplatta.csproj", "{20560B39-2EB4-4ADD-A642-65751487D0C2}"
+	ProjectSection(ProjectDependencies) = postProject
+		{36924621-6A64-4725-8495-F585EAE4CABD} = {36924621-6A64-4725-8495-F585EAE4CABD}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharpWintab", "SharpWintab\SharpWintab.csproj", "{36924621-6A64-4725-8495-F585EAE4CABD}"
 EndProject

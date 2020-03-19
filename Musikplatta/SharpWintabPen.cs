@@ -30,7 +30,7 @@ namespace Musikplatta
             this.timer.Interval = 1000;
             this.timer.Elapsed += new ElapsedEventHandler(this.timerTickEventHandler);
 
-            this.context = GetDefaultDigitizingContext();
+            this.context = this.GetDefaultDigitizingContext();
             this.extensionTags = new Wtx[] { Wtx.Touchstrip, Wtx.Touchring, Wtx.Expkeys2 };
             foreach (var extensionTag in this.extensionTags)
             {
@@ -67,8 +67,8 @@ namespace Musikplatta
             using var buffer = new Buffer<Packet>();
             if (!Functions.WTPacket(new Hctx()
             {
-                Unused = Marshal.PtrToStructure<int>(m.LParam)
-            }, Marshal.PtrToStructure<uint>(m.WParam), buffer))
+                Unused = m.LParam.ToInt32()
+            }, (uint)m.WParam.ToInt64(), buffer))
             {
                 throw new SharpWintabException("GetDataPacketExt: The return value is non-zero if the specified packet was found and returned. It is zero if the specified packet was not found in the queue.");
             }
@@ -80,8 +80,8 @@ namespace Musikplatta
             using var buffer = new Buffer<Packetext>();
             if (!Functions.WTPacket(new Hctx()
             {
-                Unused = Marshal.PtrToStructure<int>(m.LParam)
-            }, Marshal.PtrToStructure<uint>(m.WParam), buffer))
+                Unused = m.LParam.ToInt32()
+            }, (uint)m.WParam.ToInt64(), buffer))
             {
                 throw new SharpWintabException("GetDataPacketExt: The return value is non-zero if the specified packet was found and returned. It is zero if the specified packet was not found in the queue.");
             }
@@ -111,7 +111,7 @@ namespace Musikplatta
             {
                 case (int)WindowsEventMessages.WM_ACTIVATE:
                 {
-                    switch (Marshal.PtrToStructure<uint>(m.WParam))
+                    switch (m.WParam.ToInt32())
                     {
                         case (int)WParam.WA_INACTIVE:
                         {
@@ -136,16 +136,16 @@ namespace Musikplatta
                 }
                 case (int)WindowsEventMessages.WM_SYSCOMMAND:
                 {
-                    switch (Marshal.PtrToStructure<uint>(m.WParam))
+                    switch (m.WParam.ToInt32())
                     {
-                        case (uint)WParam.SC_MINIMIZE:
+                        case (int)WParam.SC_MINIMIZE:
                         {
                             //Applications should also disable their contexts when they are minimized.
                             Functions.WTEnable(this.contextHandle, false); //The function returns a non-zero value if the enable or disable request was satis­fied, zero otherwise.
                             break;
                         }
-                        case (uint)WParam.SC_RESTORE:
-                        case (uint)WParam.SC_MAXIMIZE:
+                        case (int)WParam.SC_RESTORE:
+                        case (int)WParam.SC_MAXIMIZE:
                         {
                             Functions.WTEnable(this.contextHandle, true); //The function returns a non-zero value if the enable or disable request was satis­fied, zero otherwise.
                             break;
@@ -474,7 +474,14 @@ namespace Musikplatta
         {
             for (uint tabletIndex = 0; tabletIndex < GetNumberOfDevices(); ++tabletIndex)
             {
-                this.AddOverrides(tabletIndex);
+                try
+                {
+                    this.AddOverrides(tabletIndex);
+                }
+                catch (SharpWintabException ex)
+                {
+                    this.log.Warning("Exception: {@ex}", ex);
+                }
             }
         }
 
@@ -501,49 +508,68 @@ namespace Musikplatta
 
         private T ControlPropertyGet<T>(uint tabletIndex, Wtx extTagIndex, uint controlIndex, uint functionIndex, Tablet propertyId)
         {
-            using var buffer = new Buffer<Extproperty>();
-            Marshal.StructureToPtr(new Extproperty()
+            using var buffer = new Buffer<Byte[]>(Marshal.SizeOf<Extproperty.__Native>() + Marshal.SizeOf<T>());
+            unsafe
             {
-                Version = 0,
-                TabletIndex = (byte)tabletIndex,
-                ControlIndex = (byte)controlIndex,
-                FunctionIndex = (byte)functionIndex,
-                PropertyID = (ushort)propertyId,
-                DataSize = Marshal.SizeOf<T>(),
-                Reserved = 0,
-            }, buffer, false);
+                Extproperty.__Native property = new Extproperty.__Native();
+                (new Extproperty()
+                {
+                    Version = 0,
+                    TabletIndex = (byte)tabletIndex,
+                    ControlIndex = (byte)controlIndex,
+                    FunctionIndex = (byte)functionIndex,
+                    PropertyID = (ushort)propertyId,
+                    DataSize = Marshal.SizeOf<T>(),
+                }).__MarshalTo(ref property);
+                using var pinnedProperty = new PinPtr<Extproperty.__Native>(property);
+                System.Buffer.MemoryCopy(((IntPtr)pinnedProperty).ToPointer(), ((IntPtr)buffer).ToPointer(), buffer.Size, Marshal.SizeOf<Extproperty.__Native>());
+            }
 
+            //The function returns a non-zero value if the data is retrieved successfully. Oth­er­wise, it returns zero.
             if (!Functions.WTExtGet(this.contextHandle, (uint)extTagIndex, buffer))
             {
-                throw new SharpWintabException("WTExtGet");
+                this.log.Error("WTExtGet failed. {buffer}. Return default.", buffer);
+                return default;
             }
-            return BitConvertTo<T>(((Extproperty)buffer).Data);
+            byte[] result = new byte[Marshal.SizeOf<T>()];
+            unsafe
+            {
+                //TODO: Extproperty.Data or byte after it?
+                using var pinnedResult = new PinPtr<byte[]>(result);
+                System.Buffer.MemoryCopy(IntPtr.Add(((IntPtr)buffer), (int)(buffer.Size - 1)).ToPointer(), ((IntPtr)pinnedResult).ToPointer(), Marshal.SizeOf<T>(), Marshal.SizeOf<T>());
+            }
+            return BitConvertTo<T>(result);
         }
 
-        private void ControlPropertySet<T>(uint tabletIndex, Wtx extTagIndex, uint controlIndex, uint functionIndex, Tablet property, T value_t)
+        private void ControlPropertySet<T>(uint tabletIndex, Wtx extTagIndex, uint controlIndex, uint functionIndex, Tablet propertyId, T value_t)
         {
-            byte[] value = BitConvertFrom(value_t);
             // From Wintab 1.4 specification:
             // "Note that this stucture is of variable size. The total size of the structure is sizeof(EXTPROPERTY) + dataSize. Take care to allocate the correct amount of memory before using this structure."
-            using var buffer = new Buffer<Extproperty>(Marshal.SizeOf<Extproperty>() + Marshal.SizeOf(value));
-            var extProperty = new Extproperty()
+            byte[] value = BitConvertFrom(value_t);
+            using var buffer = new Buffer<Byte[]>(Marshal.SizeOf<Extproperty.__Native>() + Marshal.SizeOf(value));
+            unsafe
             {
-                Version = 0,
-                TabletIndex = (byte)tabletIndex,
-                ControlIndex = (byte)controlIndex,
-                FunctionIndex = (byte)functionIndex,
-                PropertyID = (ushort)property,
-                Reserved = 0,
-                DataSize = Marshal.SizeOf(value),
-            };
-            Marshal.StructureToPtr(extProperty, buffer, false);
-            IntPtr lastByteOfExtProperty = IntPtr.Add((IntPtr)buffer, Marshal.SizeOf<Extproperty>() - 1);
-            for (int offset = 0; offset < Marshal.SizeOf(value); offset++)
-            {
-                Marshal.WriteByte(lastByteOfExtProperty, offset, value[offset]);
+                //TODO: Extproperty.Data or byte after it?
+                Extproperty.__Native property = new Extproperty.__Native();
+                (new Extproperty()
+                {
+                    Version = 0,
+                    TabletIndex = (byte)tabletIndex,
+                    ControlIndex = (byte)controlIndex,
+                    FunctionIndex = (byte)functionIndex,
+                    PropertyID = (ushort)propertyId,
+                    DataSize = Marshal.SizeOf<T>(),
+                    Reserved = 0,
+                }).__MarshalTo(ref property);
+                using var pinnedProperty = new PinPtr<Extproperty.__Native>(property);
+                System.Buffer.MemoryCopy(((IntPtr)pinnedProperty).ToPointer(), ((IntPtr)buffer).ToPointer(), buffer.Size, Marshal.SizeOf<Extproperty.__Native>());
             }
-
-            System.Buffer.BlockCopy(value, 0, extProperty.Data, 0, (int)extProperty.DataSize);
+            unsafe
+            {
+                //TODO: Extproperty.Data or byte after it?
+                using var pinnedValue = new PinPtr<byte[]>(value);
+                System.Buffer.MemoryCopy(((IntPtr)pinnedValue).ToPointer(), IntPtr.Add(((IntPtr)buffer), Marshal.SizeOf<Extproperty.__Native>() - 1).ToPointer(), buffer.Size, Marshal.SizeOf(value));
+            }
             if (!Functions.WTExtSet(this.contextHandle, (uint)extTagIndex, buffer))
             {
                 throw new SharpWintabException("WTExtSet");
@@ -555,13 +581,14 @@ namespace Musikplatta
             Logcontexta context = default;
             {
                 var size = Functions.WTInfoA((uint)Wti.Defcontext, 0, IntPtr.Zero);
-                using var buffer = new Buffer<Logcontexta>(size);
+                using var buffer = new Buffer<Logcontexta.__Native>(size);
                 if (size != buffer.Size)
                     this.log.Warning("WTInfoA returned {Size} instead of expected size {BufferSize}", size, buffer.Size);
                 size = Functions.WTInfoA((uint)Wti.Defcontext, 0, buffer);
                 if (size != buffer.Size)
                     this.log.Warning("WTInfoA returned {Size} instead of expected size {BufferSize}", size, buffer.Size);
-                context = (Logcontexta)buffer;
+                var native = ((Logcontexta.__Native)buffer);
+                context.__MarshalFrom(ref native);
             }
             context.LcSysMode = false;
             context.LcOptions |= (uint)Cxo.Messages | (uint)Cxo.Csrmessages;
@@ -591,8 +618,7 @@ namespace Musikplatta
         private void OnHandleCreated(object sender, EventArgs e)
         {
             this.AssignHandle(((Form)sender).Handle);
-            var handle = Marshal.PtrToStructure<int>(this.Handle);
-            this.contextHandle = Functions.WTOpenA(handle, ref this.context, true);
+            this.contextHandle = Functions.WTOpenA(this.Handle.ToInt32(), ref this.context, true);
             if (this.contextHandle.Unused == 0)
             {
                 throw new SharpWintabException("WTOpenA failed");

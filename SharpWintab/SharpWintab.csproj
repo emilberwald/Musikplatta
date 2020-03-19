@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <RunPostBuildEvent></RunPostBuildEvent>
+    <!--<BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>-->
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -11,8 +13,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="SharpGen.Runtime" Version="1.2.1" />
+    <PackageReference Include="SharpGen.Runtime.COM" Version="1.2.0" />
+    <PackageReference Include="SharpGenTools.Sdk" Version="1.2.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
     <SharpGenMapping Include="Mapping.xml" />
     <!--<SharpGenExternalDocs Include="CodeComments.xml" />-->
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="Xcopy $(ProjectDir)$(IntermediateOutputPath)SharpGen\Generated $(SolutionDir)Generated\SharpWintab /i /y&#xD;&#xA;IF %25ERRORLEVEL%25 NEQ 0 EXIT /B %25ERRORLEVEL%25" />
+  </Target>
 
 </Project>
