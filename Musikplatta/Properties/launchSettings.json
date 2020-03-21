@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Musikplatta": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}

@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>{b835eef9-a469-4532-8ec3-3766cd9c2159}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Presentation">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{df501430-c2a3-4bbd-b471-fe4889cb0ac4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Wintab">
+      <UniqueIdentifier>{ce61472e-0d3b-49c9-abbc-30f9b83360bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Wintab\include">
+      <UniqueIdentifier>{1a9eafe1-bc24-42ae-9090-eab721e6abeb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Presentation\Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Core\OS">
+      <UniqueIdentifier>{6516708f-38ba-4379-b20b-de3dcb09aa3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\OS\include">
+      <UniqueIdentifier>{d323870a-4f21-402e-8ac7-93640b121872}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="3pp\wintab\PKTDEF.H">
+      <Filter>Core\Wintab\include</Filter>
+    </ClInclude>
+    <ClInclude Include="3pp\wintab\WINTAB.H">
+      <Filter>Core\Wintab\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Presentation\Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CMusikplatta.h">
+      <Filter>Presentation</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DllPtr.h">
+      <Filter>Core\OS</Filter>
+    </ClInclude>
+    <ClInclude Include="framework.h">
+      <Filter>Core\OS\include</Filter>
+    </ClInclude>
+    <ClInclude Include="ProcessPtr.h">
+      <Filter>Core\OS</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Core\OS\include</Filter>
+    </ClInclude>
+    <ClInclude Include="L2ApiWintab.h">
+      <Filter>Core\Wintab</Filter>
+    </ClInclude>
+    <ClInclude Include="L1ApiWintab.h">
+      <Filter>Core\Wintab</Filter>
+    </ClInclude>
+    <ClInclude Include="resource1.h">
+      <Filter>Presentation\Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Program.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="ShowWindowFlags.h">
+      <Filter>Core\OS</Filter>
+    </ClInclude>
+    <ClInclude Include="explain_wm.h">
+      <Filter>Core\OS</Filter>
+    </ClInclude>
+    <ClInclude Include="explain_wt.h">
+      <Filter>Core\Wintab</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CMusikplatta.cpp">
+      <Filter>Presentation</Filter>
+    </ClCompile>
+    <ClCompile Include="Common.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="DllPtr.cpp">
+      <Filter>Core\OS</Filter>
+    </ClCompile>
+    <ClCompile Include="ProcessPtr.cpp">
+      <Filter>Core\OS</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico">
+      <Filter>Presentation\Resource Files</Filter>
+    </Image>
+    <Image Include="CMusikplatta.ico">
+      <Filter>Presentation\Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="3pp\wintab\WINTAB1.4.html">
+      <Filter>Core\Wintab\include</Filter>
+    </None>
+    <None Include="3pp\wintab\WINTAB1.4.md">
+      <Filter>Core\Wintab\include</Filter>
+    </None>
+    <None Include=".clang-format" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="CMusikplatta.rc">
+      <Filter>Presentation\Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

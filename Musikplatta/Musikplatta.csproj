@@ -20,11 +20,22 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SharpWintab\SharpWintab.csproj" />
+    <ProjectReference Include="..\SwigWintab\SwigWintab.vcxproj" />
     <ProjectReference Include="..\WintabDN\WintabDN.csproj" />
   </ItemGroup>
 
-  <Target Name="PreBuild" AfterTargets="PreBuildEvent">
-    <Exec Command="Xcopy $(SolutionDir)Generated\SharpWintab $(ProjectDir)SharpWintab /i /y /d&#xD;&#xA;IF %25ERRORLEVEL%25 NEQ 0 EXIT /B %25ERRORLEVEL%25" />
+  <ItemGroup>
+    <Folder Include="SharpWintab\" />
+    <Folder Include="SwigWintab\" />
+  </ItemGroup>
+  
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="ECHO [POSTBUILD:MUSIKPLATTA:STARTED]&#xD;&#xA;&#xD;&#xA;Xcopy $(SolutionDir)Generated\SwigWintab\$(Configuration)\*.* $(ProjectDir)$(OutDir) /i /y /d&#xD;&#xA;IF %25ERRORLEVEL%25 NEQ 0 EXIT /B %25ERRORLEVEL%25&#xD;&#xA;&#xD;&#xA;ECHO [POSTBUILD:MUSIKPLATTA:FINISHED]&#xD;&#xA;" />
+  </Target>
+  
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="ECHO [PREBUILD:MUSIKPLATTA:STARTED]&#xD;&#xA;&#xD;&#xA;Xcopy $(SolutionDir)Generated\SwigWintab\$(Configuration)\SwigWintab.cs $(ProjectDir)SwigWintab /i /y /d&#xD;&#xA;IF %25ERRORLEVEL%25 NEQ 0 EXIT /B %25ERRORLEVEL%25&#xD;&#xA;Xcopy $(SolutionDir)\Generated\SharpWintab $(ProjectDir)SharpWintab /i /y /d&#xD;&#xA;IF %25ERRORLEVEL%25 NEQ 0 EXIT /B %25ERRORLEVEL%25&#xD;&#xA;&#xD;&#xA;ECHO [PREBUILD:MUSIKPLATTA:FINISHED]&#xD;&#xA;" />
   </Target>
 
 </Project>

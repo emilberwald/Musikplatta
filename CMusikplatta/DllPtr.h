@@ -1,0 +1,18 @@
+#pragma once
+#include "ProcessPtr.h"
+
+#include <Windows.h>
+
+class DllPtr
+{
+  public:
+	explicit DllPtr(const wchar_t *filename);
+	~DllPtr();
+
+	ProcessPtr operator[](const char *proc_name) const;
+
+	static HMODULE _parent_module;
+
+  private:
+	HMODULE _module;
+};

@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="Xcopy $(ProjectDir)$(IntermediateOutputPath)SharpGen\Generated $(SolutionDir)Generated\SharpWintab /i /y&#xD;&#xA;IF %25ERRORLEVEL%25 NEQ 0 EXIT /B %25ERRORLEVEL%25" />
+    <Exec Command="ECHO [POSTBUILD:SHARPWINTAB:STARTED]&#xD;&#xA;Xcopy $(ProjectDir)$(IntermediateOutputPath)SharpGen\Generated $(SolutionDir)Generated\SharpWintab /i /y&#xD;&#xA;IF %25ERRORLEVEL%25 NEQ 0 EXIT /B %25ERRORLEVEL%25&#xD;&#xA;ECHO [POSTBUILD:SHARPWINTAB:FINISHED]&#xD;&#xA;" />
   </Target>
 
 </Project>

@@ -3,11 +3,11 @@ using System.Runtime.InteropServices;
 
 namespace Musikplatta
 {
-    internal class PinPtr<T> : IDisposable
+    internal class PinPtr : IDisposable
     {
         private bool disposedValue = false;
 
-        public PinPtr(T t)
+        public PinPtr(object t)
         {
             this.Handle = GCHandle.Alloc(t, GCHandleType.Pinned);
         }
@@ -21,7 +21,7 @@ namespace Musikplatta
 
         private GCHandle Handle { get; }
 
-        public static implicit operator IntPtr(PinPtr<T> ptr)
+        public static implicit operator IntPtr(PinPtr ptr)
         {
             return ptr.Handle.AddrOfPinnedObject();
         }

@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Swig;
 
 namespace Musikplatta
 {
-    internal class kernel32
-    {
-        [DllImport("kernel32.dll")]
-        internal static extern void RtlZeroMemory(IntPtr dst, UIntPtr length);
-    }
     internal class Buffer<T> : IDisposable
     {
         private IntPtr buffer = IntPtr.Zero;
@@ -15,8 +11,13 @@ namespace Musikplatta
         private bool isDisposed = false;
         private uint size;
 
-        public Buffer() : this((uint)Marshal.SizeOf<T>()){}
-        public Buffer(int size) : this((uint)size) { }
+        public Buffer() : this((uint)Marshal.SizeOf<T>())
+        {
+        }
+
+        public Buffer(int size) : this((uint)size)
+        {
+        }
 
         public Buffer(uint size)
         {
@@ -37,16 +38,9 @@ namespace Musikplatta
             return Marshal.PtrToStructure<T>(buffer);
         }
 
-        public override string ToString() 
-        {
-            unsafe
-            {
-                ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(((IntPtr)(this)).ToPointer(), (int)this.Size);
-                return BitConverter.ToString(span.ToArray());
-            }
-        }
-
         public static implicit operator IntPtr(Buffer<T> buffer) => buffer.buffer;
+
+        public static implicit operator SWIGTYPE_p_void(Buffer<T> buffer) => new SWIGTYPE_p_void(buffer, default);
 
         public void Dispose()
         {
@@ -54,6 +48,14 @@ namespace Musikplatta
             GC.SuppressFinalize(this);
         }
 
+        public override string ToString()
+        {
+            unsafe
+            {
+                ReadOnlySpan<byte> span = new ReadOnlySpan<byte>(((IntPtr)(this)).ToPointer(), (int)this.Size);
+                return BitConverter.ToString(span.ToArray());
+            }
+        }
         protected virtual void Dispose(bool disposing)
         {
             if (!this.isDisposed)
@@ -72,5 +74,11 @@ namespace Musikplatta
                 this.isDisposed = true;
             }
         }
+    }
+
+    internal class kernel32
+    {
+        [DllImport("kernel32.dll")]
+        internal static extern void RtlZeroMemory(IntPtr dst, UIntPtr length);
     }
 }

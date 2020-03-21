@@ -13,7 +13,7 @@ namespace Musikplatta
             services
                 .AddSingleton<Form>()
                 .AddSingleton<ILogger>(new LoggerConfiguration().WriteTo.Console().WriteTo.File("log.txt", rollingInterval: RollingInterval.Hour).CreateLogger())
-                .AddSingleton<IWintabPen>(x => new SharpWintabPen(x.GetRequiredService<ILogger>(), x.GetRequiredService<Form>()));
+                .AddSingleton<IWintabPen>(x => new WintabPen(x.GetRequiredService<ILogger>(), x.GetRequiredService<Form>()));
         }
 
         [STAThread]

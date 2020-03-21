@@ -1,0 +1,11 @@
+-csharp
+-namespace Swig
+-outfile SwigWintab.cs
+-c++
+-cppext cpp
+-includeall
+-module SwigWintab
+-o SwigWintab.cpp
+-oh SwigWintab.h
+-v
+-macroerrors
