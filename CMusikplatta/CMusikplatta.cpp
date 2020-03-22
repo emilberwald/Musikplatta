@@ -22,7 +22,10 @@ void SetupConsoleWindow()
 	if(freopen_s(&input, "CONIN$", "r", stdin) != 0) throw std::runtime_error(MP_HEREWIN32);
 	if(freopen_s(&errput, "CONOUT$", "w", stderr) != 0) throw std::runtime_error(MP_HEREWIN32);
 	if(freopen_s(&output, "CONOUT$", "w", stdout) != 0) throw std::runtime_error(MP_HEREWIN32);
-	spdlog::info("SetupConsoleWindow");
+	std::cout << "cout working" << std::endl;
+	std::cerr << "cerr working" << std::endl;
+	spdlog::info("spdlog working");
+	spdlog::flush_every(std::chrono::seconds(1));
 }
 VOID CALLBACK timer_procedure(HWND hWnd, UINT nMsg, UINT_PTR nIDEvent, DWORD dwTime)
 {
@@ -36,10 +39,11 @@ VOID CALLBACK timer_procedure(HWND hWnd, UINT nMsg, UINT_PTR nIDEvent, DWORD dwT
 #define MAX_LOADSTRING 100
 
 // Global Variables:
-HINSTANCE		 hInst;								   // current instance
-WCHAR			 szTitle[MAX_LOADSTRING];			   // The title bar text
-WCHAR			 szWindowClass[MAX_LOADSTRING];		   // the main window class name
-ATOM			 MyRegisterClass(HINSTANCE hInstance); //<! FORWARD DECLARATION
+HINSTANCE hInst;						 // current instance
+WCHAR	  szTitle[MAX_LOADSTRING];		 // The title bar text
+WCHAR	  szWindowClass[MAX_LOADSTRING]; // the main window class name
+template<class T>
+ATOM			 MyRegisterClass(HINSTANCE hInstance, T *t); //<! FORWARD DECLARATION
 LRESULT CALLBACK ProcessWindowMessage(HWND, UINT, WPARAM,
 									  LPARAM);		//<! FORWARD DECLARATION
 INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM); //<! FORWARD DECLARATION
@@ -101,7 +105,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE	 hInstance,
 	LoadStringW(hInstance, IDC_CMUSIKPLATTA, szWindowClass, MAX_LOADSTRING);
 
 	std::shared_ptr<mp::IProgram> program(new mp::Program{});
-	MyRegisterClass(hInstance);
+	MyRegisterClass(hInstance, program.get());
 	if(!InitInstance<mp::IProgram>(hInstance,
 								   static_cast<ShowWindowFlags>(nCmdShow),
 								   program.get())) // Perform application initialization
@@ -140,14 +144,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE	 hInstance,
 /// https://devblogs.microsoft.com/oldnewthing/20040614-00/?p=38903
 /// </param>
 /// <returns></returns>
-ATOM MyRegisterClass(HINSTANCE hInstance)
+template<class T>
+ATOM MyRegisterClass(HINSTANCE hInstance, T *userdata)
 {
 	WNDCLASSEXW wcex;
 	wcex.cbSize		   = sizeof(WNDCLASSEX);
 	wcex.style		   = CS_HREDRAW | CS_VREDRAW;
 	wcex.lpfnWndProc   = ProcessWindowMessage;
 	wcex.cbClsExtra	   = 0;
-	wcex.cbWndExtra	   = 0;
+	wcex.cbWndExtra	   = sizeof(userdata);
 	wcex.hInstance	   = hInstance;
 	wcex.hIcon		   = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CMUSIKPLATTA));
 	wcex.hCursor	   = LoadCursor(nullptr, IDC_ARROW);
