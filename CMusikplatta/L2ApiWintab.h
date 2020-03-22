@@ -4,8 +4,6 @@
 #include "L1ApiWintab.h"
 
 #include <array>
-#include <fmt/format.h>
-#include <spdlog/spdlog.h>
 #include <stdexcept>
 #include <vector>
 

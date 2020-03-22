@@ -1,6 +1,8 @@
 #pragma once
 #include <fstream>
 #include <iostream>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/spdlog.h>
 #include <string>
 
 #define MP_HERE		 (std::to_string(__LINE__) + ":" + __FILE__ + " " + __func__ + ":")

@@ -16,5 +16,6 @@ class Program: public IProgram
   private:
 	std::shared_ptr<LOGCONTEXTW> context_descriptor;
 	HCTX						 context;
+	HWND						 window_id;
 };
 } // namespace mp

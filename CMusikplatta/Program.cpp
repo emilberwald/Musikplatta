@@ -11,7 +11,7 @@
 
 namespace mp
 {
-Program::Program(): context_descriptor(new LOGCONTEXTW{})
+Program::Program(): window_id(nullptr), context_descriptor(new LOGCONTEXTW{})
 {
 	this->context_descriptor = AddExtensions(AddDefaultDigitizingContext(this->context_descriptor));
 }
@@ -20,72 +20,79 @@ Program::~Program() {}
 
 void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPARAM lparam)
 {
-	switch(messageType)
+	if(this->context == nullptr)
 	{
-		case WM_ACTIVATE:
+		spdlog::info("OpenWintabContext");
+		this->context = mp::OpenWintabContext(windowId, this->context_descriptor, true);
+	}
+	if(this->context)
+	{
+		switch(messageType)
 		{
-			switch(wparam)
+			case WM_ACTIVATE:
 			{
-				case WA_INACTIVE:
+				switch(wparam)
 				{
-					// NOTE: It is recommended that applications remove their overrides when the application's main
-					// window is no longer active (use WM_ACTIVATE). Extension overrides take effect across the entire
-					// system; if an application leaves its overrides in place, that control will not function correctly
-					// in other applications.
-					RemoveAllOverrides(this->context);
-					// When applications receive the WM_ACTIVATE message, they should push their contexts to the bottom
-					// of the overlap order if their application is being deactivated, and should bring their context to
-					// the top if they are being activated.
-					if(WTOverlap(this->context, false) == 0) MP_THROW_WINTAB_EXCEPTION
-					break;
+					case WA_INACTIVE:
+					{
+						// NOTE: It is recommended that applications remove their overrides when the application's main
+						// window is no longer active (use WM_ACTIVATE). Extension overrides take effect across the entire
+						// system; if an application leaves its overrides in place, that control will not function correctly
+						// in other applications.
+						RemoveAllOverrides(this->context);
+						// When applications receive the WM_ACTIVATE message, they should push their contexts to the bottom
+						// of the overlap order if their application is being deactivated, and should bring their context to
+						// the top if they are being activated.
+						if(WTOverlap(this->context, FALSE) == 0) MP_THROW_WINTAB_EXCEPTION
+						break;
+					}
+					case WA_ACTIVE:
+					case WA_CLICKACTIVE:
+					{
+						AddAllOverrides(this->context);
+						// When applications receive the WM_ACTIVATE message, they should push their contexts to the bottom
+						// of the overlap order if their application is being deactivated, and should bring their context to
+						// the top if they are being activated.
+						if(WTOverlap(this->context, TRUE) == 0) MP_THROW_WINTAB_EXCEPTION
+						break;
+					}
+					default: break;
 				}
-				case WA_ACTIVE:
-				case WA_CLICKACTIVE:
-				{
-					AddAllOverrides(this->context);
-					// When applications receive the WM_ACTIVATE message, they should push their contexts to the bottom
-					// of the overlap order if their application is being deactivated, and should bring their context to
-					// the top if they are being activated.
-					if(WTOverlap(this->context, true) == 0) MP_THROW_WINTAB_EXCEPTION
-					break;
-				}
-				default: break;
+				break;
 			}
-			break;
-		}
-		case WM_SYSCOMMAND:
-		{
-			switch(wparam)
+			case WM_SYSCOMMAND:
 			{
-				case SC_MINIMIZE:
+				switch(wparam)
 				{
-					// Applications should also disable their contexts when they are minimized.
-					if(WTEnable(this->context, false) == 0) MP_THROW_WINTAB_EXCEPTION
-					break;
+					case SC_MINIMIZE:
+					{
+						// Applications should also disable their contexts when they are minimized.
+						if(WTEnable(this->context, FALSE) == 0) MP_THROW_WINTAB_EXCEPTION
+						break;
+					}
+					case SC_RESTORE:
+					case SC_MAXIMIZE:
+					{
+						if(WTEnable(this->context, TRUE) == 0) MP_THROW_WINTAB_EXCEPTION
+						break;
+					}
+					default: break;
 				}
-				case SC_RESTORE:
-				case SC_MAXIMIZE:
-				{
-					if(WTEnable(this->context, true) == 0) MP_THROW_WINTAB_EXCEPTION
-					break;
-				}
-				default: break;
+				break;
 			}
-			break;
-		}
-		case WM_LBUTTONDOWN:
-		{
-			// stylus button
-			break;
-		}
-		case WM_LBUTTONUP:
-		{
-			// stylus button
-			break;
-		}
-		case WT_PACKET:
-		{
-			/*
+			case WM_LBUTTONDOWN:
+			{
+				// stylus button
+				break;
+			}
+			case WM_LBUTTONUP:
+			{
+				// stylus button
+				break;
+			}
+			case WT_PACKET:
+			{
+				/*
 				The interface defines a standard orientation for reporting device native coordinates.
 				When the user is viewing the device in its normal position, the coordinate origin will be at the lower
 			   left of the device. The coordinate system will be right-handed, that is, the positive x axis points from
@@ -95,89 +102,89 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 			   example, a touch screen on a conventional dis­play), the x-y plane will be vertical, and the z axis will
 			   point toward the user.
 			*/
-			auto packet = GetDataPacket(this->context, wparam);
-			spdlog::info(("pkButtons {} "
-						  "pkChanged {} "
-						  "pkContext {} "
-						  "pkCursor {} "
-						  "pkNormalPressure {} "
-						  "pkOrientation.orAltitude {} "
-						  "pkOrientation.orAzimuth {} "
-						  "pkOrientation.orTwist {} "
-						  "pkRotation.roPitch {} "
-						  "pkRotation.roRoll {} "
-						  "pkRotation.roYaw {} "
-						  "pkStatus {} "
-						  "pkTangentPressure {} "
-						  "pkTime {} "
-						  "pkX {} "
-						  "pkY {} "
-						  "pkZ {} ",
-						  packet.pkButtons,
-						  packet.pkChanged,
-						  packet.pkContext->unused,
-						  packet.pkCursor,
-						  packet.pkNormalPressure,
-						  packet.pkOrientation.orAltitude,
-						  packet.pkOrientation.orAzimuth,
-						  packet.pkOrientation.orTwist,
-						  packet.pkRotation.roPitch,
-						  packet.pkRotation.roRoll,
-						  packet.pkRotation.roYaw,
-						  packet.pkStatus,
-						  packet.pkTangentPressure,
-						  packet.pkTime,
-						  packet.pkX,
-						  packet.pkY,
-						  packet.pkZ));
-			break;
-		}
-		case WT_PACKETEXT:
-		{
-			auto packet = GetDataPacketExt(this->context, wparam);
-			spdlog::info(("pkBase.nContext->unused {}"
-						  "pkBase.nSerialNumber {} "
-						  "pkBase.nStatus {} "
-						  "pkBase.nTime {} "
-						  "pkExpKeys.nControl {} "
-						  "pkExpKeys.nLocation {} "
-						  "pkExpKeys.nReserved {} "
-						  "pkExpKeys.nState {} "
-						  "pkExpKeys.nTablet {} "
-						  "pkTouchRing.nControl {} "
-						  "pkTouchRing.nMode {} "
-						  "pkTouchRing.nPosition {} "
-						  "pkTouchRing.nReserved {} "
-						  "pkTouchRing.nTablet {} "
-						  "pkTouchStrip.nControl {} "
-						  "pkTouchStrip.nMode {} "
-						  "pkTouchStrip.nPosition {} "
-						  "pkTouchStrip.nReserved {} "
-						  "pkTouchStrip.nTablet {} ",
-						  packet.pkBase.nContext->unused,
-						  packet.pkBase.nSerialNumber,
-						  packet.pkBase.nStatus,
-						  packet.pkBase.nTime,
-						  packet.pkExpKeys.nControl,
-						  packet.pkExpKeys.nLocation,
-						  packet.pkExpKeys.nReserved,
-						  packet.pkExpKeys.nState,
-						  packet.pkExpKeys.nTablet,
-						  packet.pkTouchRing.nControl,
-						  packet.pkTouchRing.nMode,
-						  packet.pkTouchRing.nPosition,
-						  packet.pkTouchRing.nReserved,
-						  packet.pkTouchRing.nTablet,
-						  packet.pkTouchStrip.nControl,
-						  packet.pkTouchStrip.nMode,
-						  packet.pkTouchStrip.nPosition,
-						  packet.pkTouchStrip.nReserved,
-						  packet.pkTouchStrip.nTablet));
-			break;
-		}
-		case WT_CTXOPEN:
-		{
-			/*
+				auto packet = GetDataPacket(this->context, wparam);
+				spdlog::info(("pkButtons {} "
+							  "pkChanged {} "
+							  "pkContext {} "
+							  "pkCursor {} "
+							  "pkNormalPressure {} "
+							  "pkOrientation.orAltitude {} "
+							  "pkOrientation.orAzimuth {} "
+							  "pkOrientation.orTwist {} "
+							  "pkRotation.roPitch {} "
+							  "pkRotation.roRoll {} "
+							  "pkRotation.roYaw {} "
+							  "pkStatus {} "
+							  "pkTangentPressure {} "
+							  "pkTime {} "
+							  "pkX {} "
+							  "pkY {} "
+							  "pkZ {} ",
+							  packet.pkButtons,
+							  packet.pkChanged,
+							  packet.pkContext->unused,
+							  packet.pkCursor,
+							  packet.pkNormalPressure,
+							  packet.pkOrientation.orAltitude,
+							  packet.pkOrientation.orAzimuth,
+							  packet.pkOrientation.orTwist,
+							  packet.pkRotation.roPitch,
+							  packet.pkRotation.roRoll,
+							  packet.pkRotation.roYaw,
+							  packet.pkStatus,
+							  packet.pkTangentPressure,
+							  packet.pkTime,
+							  packet.pkX,
+							  packet.pkY,
+							  packet.pkZ));
+				break;
+			}
+			case WT_PACKETEXT:
+			{
+				auto packet = GetDataPacketExt(this->context, wparam);
+				spdlog::info(("pkBase.nContext->unused {}"
+							  "pkBase.nSerialNumber {} "
+							  "pkBase.nStatus {} "
+							  "pkBase.nTime {} "
+							  "pkExpKeys.nControl {} "
+							  "pkExpKeys.nLocation {} "
+							  "pkExpKeys.nReserved {} "
+							  "pkExpKeys.nState {} "
+							  "pkExpKeys.nTablet {} "
+							  "pkTouchRing.nControl {} "
+							  "pkTouchRing.nMode {} "
+							  "pkTouchRing.nPosition {} "
+							  "pkTouchRing.nReserved {} "
+							  "pkTouchRing.nTablet {} "
+							  "pkTouchStrip.nControl {} "
+							  "pkTouchStrip.nMode {} "
+							  "pkTouchStrip.nPosition {} "
+							  "pkTouchStrip.nReserved {} "
+							  "pkTouchStrip.nTablet {} ",
+							  packet.pkBase.nContext->unused,
+							  packet.pkBase.nSerialNumber,
+							  packet.pkBase.nStatus,
+							  packet.pkBase.nTime,
+							  packet.pkExpKeys.nControl,
+							  packet.pkExpKeys.nLocation,
+							  packet.pkExpKeys.nReserved,
+							  packet.pkExpKeys.nState,
+							  packet.pkExpKeys.nTablet,
+							  packet.pkTouchRing.nControl,
+							  packet.pkTouchRing.nMode,
+							  packet.pkTouchRing.nPosition,
+							  packet.pkTouchRing.nReserved,
+							  packet.pkTouchRing.nTablet,
+							  packet.pkTouchStrip.nControl,
+							  packet.pkTouchStrip.nMode,
+							  packet.pkTouchStrip.nPosition,
+							  packet.pkTouchStrip.nReserved,
+							  packet.pkTouchStrip.nTablet));
+				break;
+			}
+			case WT_CTXOPEN:
+			{
+				/*
 				+---+-------------------------------------------------+---------------+
 				| D | The WT_CTXOPEN message is sent to the owning    |               |
 				| e | window and to any manager windows when a        |               |
@@ -202,11 +209,11 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 				| m.| further at this time.                           |               |
 				+---+-------------------------------------------------+---------------+
 			*/
-			break;
-		}
-		case WT_CTXCLOSE:
-		{
-			/*
+				break;
+			}
+			case WT_CTXCLOSE:
+			{
+				/*
 				+-------------+-------------------------------------------------------------------------------------------------------------------------+
 				| Description | The WT_CTXCLOSE message is sent to the owning winÂ­dow and to any manager windows when a
 			   context is about to be closed.  |
@@ -221,11 +228,11 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 			   appropriate action.                   |
 				+-------------+-------------------------------------------------------------------------------------------------------------------------+
 			*/
-			break;
-		}
-		case WT_CTXUPDATE:
-		{
-			/*
+				break;
+			}
+			case WT_CTXUPDATE:
+			{
+				/*
 				+-------------+-----------------------------------------------------------------------------------------------------------------------------+
 				| Description | The WT_CTXUPDATE message is sent to the owning window and to any manager windows when a
 			   context is changed.                 |
@@ -240,11 +247,11 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 			   what context attributes were changed. |
 				+-------------+-----------------------------------------------------------------------------------------------------------------------------+
 			*/
-			break;
-		}
-		case WT_CTXOVERLAP:
-		{
-			/*
+				break;
+			}
+			case WT_CTXOVERLAP:
+			{
+				/*
 				+-------------+-----------------------------------------------------------------------------------------------------------------------------------+
 				| Description | The WT_CTXOVERLAP message is sent to the owning window and to any manager windows when a
 			   context is moved in the overlap order.   |
@@ -262,11 +269,11 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 			   another context.                               |
 				+-------------+-----------------------------------------------------------------------------------------------------------------------------------+
 			*/
-			break;
-		}
-		case WT_PROXIMITY:
-		{
-			/*
+				break;
+			}
+			case WT_PROXIMITY:
+			{
+				/*
 				+-------------+---------------------------------------------------------------------------------------------------------------------------------------+
 				| Description | The WT_PROXIMITY message is posted to the owning window and any manager windows when the
 			   cursor enters or leaves context proximity.   |
@@ -284,11 +291,11 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 			   Applications will receive proximity messages even if they haven't requested event messages. |
 				+-------------+---------------------------------------------------------------------------------------------------------------------------------------+
 			*/
-			break;
-		}
-		case WT_INFOCHANGE:
-		{
-			/*
+				break;
+			}
+			case WT_INFOCHANGE:
+			{
+				/*
 					+---+----------------------------------------+---------------------------+
 					| D | The WT_INFOCHANGE message is sent to   |                           |
 					| e | all mangager and context-owning        |                           |
@@ -329,11 +336,11 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 					|   | that allow multiple tablet managers).  |                           |
 					+---+----------------------------------------+---------------------------+
 			*/
-			break;
-		}
-		case WT_CSRCHANGE:
-		{
-			/*
+				break;
+			}
+			case WT_CSRCHANGE:
+			{
+				/*
 				+-------------+-------------------------------------------------------------------------------------------------+
 				| Description | The WT_CSRCHANGE message is posted to the owning window when a new cursor enters the
 			   context.   |
@@ -348,9 +355,10 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 			   |
 				+-------------+-------------------------------------------------------------------------------------------------+
 			*/
-			break;
+				break;
+			}
+			default: return;
 		}
-		default: MP_THROW_WINTAB_EXCEPTION
 	}
 }
 } // namespace mp

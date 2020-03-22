@@ -4,7 +4,7 @@
 #include "L0ApiWintab.h"
 #include "L1ApiWintab.h"
 
-#include <spdlog/spdlog.h>
+#include <fmt/format.h>
 
 namespace mp
 {

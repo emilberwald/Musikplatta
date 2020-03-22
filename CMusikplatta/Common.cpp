@@ -1,6 +1,5 @@
 #include "Common.h"
 
-#include <spdlog/spdlog.h>
 namespace mp
 {
 std::basic_string<char> as_string(std::basic_string<wchar_t> input)

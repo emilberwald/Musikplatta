@@ -4,7 +4,6 @@
 #include "framework.h"
 
 #include <memory>
-#include <spdlog/spdlog.h>
 #include <string>
 #include <system_error>
 namespace mp

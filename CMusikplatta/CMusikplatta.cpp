@@ -16,16 +16,21 @@
 void SetupConsoleWindow()
 {
 	AllocConsole();
-	FILE *input		   = nullptr;
-	FILE *errput	   = nullptr;
-	FILE *output	   = nullptr;
-	auto  stdin_errno  = freopen_s(&input, "CONIN$", "r", stdin);
-	auto  stderr_errno = freopen_s(&errput, "CONOUT$", "w", stderr);
-	auto  sdout_errno  = freopen_s(&output, "CONOUT$", "w", stdout);
+	FILE *input	 = nullptr;
+	FILE *errput = nullptr;
+	FILE *output = nullptr;
+	if(freopen_s(&input, "CONIN$", "r", stdin) != 0) throw std::runtime_error(MP_HEREWIN32);
+	if(freopen_s(&errput, "CONOUT$", "w", stderr) != 0) throw std::runtime_error(MP_HEREWIN32);
+	if(freopen_s(&output, "CONOUT$", "w", stdout) != 0) throw std::runtime_error(MP_HEREWIN32);
+	spdlog::info("SetupConsoleWindow");
 }
 VOID CALLBACK timer_procedure(HWND hWnd, UINT nMsg, UINT_PTR nIDEvent, DWORD dwTime)
 {
-	spdlog::info("Run loop. windowId={} mMsg={} nIDEvent={} dwTime={}", hWnd->unused, nMsg, nIDEvent, dwTime);
+	spdlog::info("Run loop. windowId={} mMsg={} nIDEvent={} dwTime={}",
+				 hWnd ? hWnd->unused : 0,
+				 nMsg,
+				 nIDEvent,
+				 dwTime);
 }
 
 #define MAX_LOADSTRING 100
@@ -95,8 +100,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE	 hInstance,
 	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadStringW(hInstance, IDC_CMUSIKPLATTA, szWindowClass, MAX_LOADSTRING);
 
-	std::unique_ptr<mp::IProgram> program(new mp::Program{});
-
+	std::shared_ptr<mp::IProgram> program(new mp::Program{});
 	MyRegisterClass(hInstance);
 	if(!InitInstance<mp::IProgram>(hInstance,
 								   static_cast<ShowWindowFlags>(nCmdShow),
