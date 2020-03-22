@@ -174,6 +174,8 @@
     <ClInclude Include="DllPtr.h" />
     <ClInclude Include="3pp\wintab\PKTDEF.H" />
     <ClInclude Include="explain_wm.h" />
+    <ClInclude Include="IProgram.h" />
+    <ClInclude Include="L0ApiWintab.h" />
     <ClInclude Include="L2ApiWintab.h" />
     <ClInclude Include="ProcessPtr.h" />
     <ClInclude Include="L1ApiWintab.h" />
@@ -188,7 +190,12 @@
     <ClCompile Include="CMusikplatta.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="DllPtr.cpp" />
+    <ClCompile Include="explain_wm.cpp" />
+    <ClCompile Include="explain_wt.cpp" />
+    <ClCompile Include="L1ApiWintab.cpp" />
+    <ClCompile Include="L2ApiWintab.cpp" />
     <ClCompile Include="ProcessPtr.cpp" />
+    <ClCompile Include="Program.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="CMusikplatta.ico" />

@@ -3,7 +3,9 @@
 #include "Common.h"
 #include "framework.h"
 
-ProcessPtr::ProcessPtr(FARPROC ptr, const char *name) : _ptr(ptr)
+#include <spdlog/spdlog.h>
+
+ProcessPtr::ProcessPtr(FARPROC ptr, const char *name): _ptr(ptr)
 {
-	if(_ptr == nullptr) { __LOG(__ERROR__ + " " + name); }
+	if(_ptr == nullptr) { spdlog::error(MP_HEREWIN32 + " " + std::string(name)); }
 }

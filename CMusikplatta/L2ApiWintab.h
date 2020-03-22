@@ -1,118 +1,97 @@
 #pragma once
+#include "Common.h"
+#include "L0ApiWintab.h"
 #include "L1ApiWintab.h"
 
 #include <array>
+#include <fmt/format.h>
+#include <spdlog/spdlog.h>
+#include <stdexcept>
+#include <vector>
 
-LOGCONTEXTW GetDefaultDigitizingContext()
-{
-	auto size = WTInfoW(WTI_DEFCONTEXT, 0, nullptr);
-	if(size != sizeof(LOGCONTEXTW)) { spdlog::warn(__HERE__); }
-	LOGCONTEXTW context {};
-	size = WTInfoW(WTI_DEFCONTEXT, 0, &context);
-	if(size != sizeof(LOGCONTEXTW)) { spdlog::warn(__HERE__); }
-	context.lcSysMode = false;
-	context.lcOptions |= CXO_MESSAGES | CXO_CSRMESSAGES;
-	for(const auto &value: {
-			PK_BUTTONS,
-			PK_CHANGED,
-			PK_CONTEXT,
-			PK_CURSOR,
-			PK_NORMAL_PRESSURE,
-			PK_ORIENTATION,
-			PK_ROTATION,
-			PK_SERIAL_NUMBER,
-			PK_STATUS,
-			PK_TANGENT_PRESSURE,
-			PK_TIME,
-			PK_X,
-			PK_Y,
-			PK_Z,
-			PKEXT_ABSOLUTE,
-		})
-	{
-		context.lcPktData |= value;
-		// uncomment if relative mode is wanted
-		// context.LcPktMode |= value
-		context.lcMoveMask |= value;
+#define MP_THROW_WINTAB_EXCEPTION                                                                                      \
+	{                                                                                                                  \
+		spdlog::error(MP_HERE);                                                                                        \
+		throw mp::wintab_exception(MP_HERE);                                                                           \
 	}
-	// not sure how these work
-	context.lcBtnUpMask = context.lcBtnDnMask;
-	return context;
-}
 
-template<class T>
-T ControlPropertyGet(HCTX		  handle,
-					 unsigned int tabletIndex,
-					 unsigned int extTagIndex,
-					 unsigned int controlIndex,
-					 unsigned int functionIndex,
-					 int		  propertyId)
+namespace mp
 {
-	std::array<char, sizeof(EXTPROPERTY) + sizeof(T)> buffer {};
-	EXTPROPERTY										  ext_property = { (unsigned char)0,
-								   (unsigned char)tabletIndex,
-								   (unsigned char)controlIndex,
-								   (unsigned char)functionIndex,
-								   (unsigned short)propertyId,
-								   (unsigned short)0,
-								   (unsigned long)sizeof(T),
-								   (unsigned char)0 };
-	std::memcpy(buffer.data(), &ext_property, sizeof(property));
+struct wintab_exception: std::runtime_error
+{
+	using std::runtime_error::runtime_error;
+};
 
-	if(WTExtGet(handle, extTagIndex, buffer) == 0) { spdlog::warn(__HERE__); }
+std::shared_ptr<LOGCONTEXTW> AddDefaultDigitizingContext(std::shared_ptr<LOGCONTEXTW> context);
 
-	T prop {};
-	std::memcpy(prop, buffer.data() + sizeof(EXTPROPERTY), sizeof(T));
-	return prop;
-}
+std::shared_ptr<LOGCONTEXTW> AddExtensions(std::shared_ptr<LOGCONTEXTW> context);
+
+HCTX OpenWintabContext(HWND windowId, std::shared_ptr<LOGCONTEXTW> contextDescriptor, bool openEnabled);
+
+const char* ExtensionTagName(unsigned int extTagIndex);
+
+const char* ExtensionTagDescription(unsigned int extTagIndex);
+
+unsigned int GetNumberOfDevices(HCTX context);
+
+void Override(HCTX		   context,
+			  unsigned int tabletIndex,
+			  unsigned int extTagIndex,
+			  unsigned int functionIndex,
+			  unsigned int controlIndex);
+
+void AddOverrides(HCTX						context,
+				  unsigned int				tabletIndex,
+				  std::vector<unsigned int> extensionTags = { WTX_TOUCHSTRIP, WTX_TOUCHRING, WTX_EXPKEYS2 });
+
+void AddAllOverrides(HCTX context);
+void RemoveAllOverrides(HCTX					  context,
+						std::vector<unsigned int> extensionTags = { WTX_TOUCHSTRIP, WTX_TOUCHRING, WTX_EXPKEYS2 });
 
 template<class T>
+inline T ControlPropertyGet(HCTX		 handle,
+							unsigned int tabletIndex,
+							unsigned int extTagIndex,
+							unsigned int controlIndex,
+							unsigned int functionIndex,
+							int			 propertyId)
+{
+	std::unique_ptr<uint8_t> buffer(new uint8_t[sizeof(EXTPROPERTY) + sizeof(T) - sizeof(uint8_t)]);
+
+	*reinterpret_cast<EXTPROPERTY*>(buffer.get()) = { (unsigned char)0,
+													  (unsigned char)tabletIndex,
+													  (unsigned char)controlIndex,
+													  (unsigned char)functionIndex,
+													  (unsigned short)propertyId,
+													  (unsigned short)0,
+													  (unsigned long)sizeof(T),
+													  (unsigned char)0 };
+
+	if(WTExtGet(handle, extTagIndex, buffer.get()) == 0) MP_THROW_WINTAB_EXCEPTION;
+
+	T control_property{};
+	std::memcpy(&control_property, &(reinterpret_cast<EXTPROPERTY*>(buffer.get())->data[0]), sizeof(T));
+
+	return control_property;
+}
+
 void ControlPropertySet(HCTX		 handle,
 						unsigned int tabletIndex,
 						unsigned int extTagIndex,
 						unsigned int controlIndex,
 						unsigned int functionIndex,
 						int			 propertyId,
-						T			 value)
-{
-	std::array<char, sizeof(EXTPROPERTY) + sizeof(T)> buffer {};
-	EXTPROPERTY										  ext_property = { (unsigned char)0,
-								   (unsigned char)tabletIndex,
-								   (unsigned char)controlIndex,
-								   (unsigned char)functionIndex,
-								   (unsigned short)propertyId,
-								   (unsigned short)0,
-								   (unsigned long)sizeof(T),
-								   (unsigned char)0 };
-	std::memcpy(buffer.data(), &ext_property, sizeof(ext_property));
-	std::memcpy(buffer.data() + sizeof(EXTPROPERTY), &value, sizeof(value));
-	WTExtSet(handle, extTagIndex, buffer.data());
-
-	if(WTExtSet(handle, extTagIndex, buffer.data()) == 0) { spdlog::warn(__HERE__); }
-	return;
-}
+						const void*	 value_p,
+						size_t		 value_s);
 
 std::tuple<unsigned int, unsigned int> GetIconSize(HCTX			handle,
 												   unsigned int tabletIndex,
 												   unsigned int extTagIndex,
 												   unsigned int functionIndex,
-												   unsigned int controlIndex)
-{
-	// Get the width of the display icon
-	auto IconWidth = ControlPropertyGet<unsigned int>(handle,
-													  tabletIndex,
-													  extTagIndex,
-													  controlIndex,
-													  functionIndex,
-													  TABLET_PROPERTY_ICON_WIDTH);
+												   unsigned int controlIndex);
 
-	// Get the height of the display icon
-	auto IconHeight = ControlPropertyGet<unsigned int>(handle,
-													   tabletIndex,
-													   extTagIndex,
-													   controlIndex,
-													   functionIndex,
-													   TABLET_PROPERTY_ICON_HEIGHT);
+PACKETEXT GetDataPacketExt(HCTX context, WPARAM wparam);
 
-	return std::make_tuple(IconWidth, IconHeight);
-}
+PACKET GetDataPacket(HCTX context, WPARAM wparam);
+
+} // namespace mp

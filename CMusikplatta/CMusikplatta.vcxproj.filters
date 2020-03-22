@@ -59,9 +59,6 @@
     <ClInclude Include="L2ApiWintab.h">
       <Filter>Core\Wintab</Filter>
     </ClInclude>
-    <ClInclude Include="L1ApiWintab.h">
-      <Filter>Core\Wintab</Filter>
-    </ClInclude>
     <ClInclude Include="resource1.h">
       <Filter>Presentation\Resource Files</Filter>
     </ClInclude>
@@ -77,6 +74,15 @@
     <ClInclude Include="explain_wt.h">
       <Filter>Core\Wintab</Filter>
     </ClInclude>
+    <ClInclude Include="IProgram.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="L1ApiWintab.h">
+      <Filter>Core\Wintab</Filter>
+    </ClInclude>
+    <ClInclude Include="L0ApiWintab.h">
+      <Filter>Core\Wintab</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CMusikplatta.cpp">
@@ -90,6 +96,21 @@
     </ClCompile>
     <ClCompile Include="ProcessPtr.cpp">
       <Filter>Core\OS</Filter>
+    </ClCompile>
+    <ClCompile Include="Program.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="L1ApiWintab.cpp">
+      <Filter>Core\Wintab</Filter>
+    </ClCompile>
+    <ClCompile Include="explain_wt.cpp">
+      <Filter>Core\Wintab</Filter>
+    </ClCompile>
+    <ClCompile Include="explain_wm.cpp">
+      <Filter>Core\OS</Filter>
+    </ClCompile>
+    <ClCompile Include="L2ApiWintab.cpp">
+      <Filter>Core\Wintab</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

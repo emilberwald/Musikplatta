@@ -2,7 +2,8 @@
 #include "ProcessPtr.h"
 
 #include <Windows.h>
-
+namespace mp
+{
 class DllPtr
 {
   public:
@@ -16,3 +17,5 @@ class DllPtr
   private:
 	HMODULE _module;
 };
+
+} // namespace mp

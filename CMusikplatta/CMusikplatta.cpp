@@ -10,9 +10,9 @@
 #include "framework.h"
 
 #include <iomanip>
+#include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
-
 void SetupConsoleWindow()
 {
 	AllocConsole();
@@ -25,11 +25,7 @@ void SetupConsoleWindow()
 }
 VOID CALLBACK timer_procedure(HWND hWnd, UINT nMsg, UINT_PTR nIDEvent, DWORD dwTime)
 {
-	spdlog::info("Run loop. windowId={} mMsg={} nIDEvent={} dwTime={}",
-				 (intptr_t)hWnd,
-				 nMsg,
-				 nIDEvent,
-				 dwTime);
+	spdlog::info("Run loop. windowId={} mMsg={} nIDEvent={} dwTime={}", hWnd->unused, nMsg, nIDEvent, dwTime);
 }
 
 #define MAX_LOADSTRING 100
@@ -53,7 +49,7 @@ INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM); //<! FORWARD DECLARATION
 /// <param name="nCmdShow">The n command show.</param>
 /// <returns></returns>
 template<class T>
-BOOL InitInstance(HINSTANCE hInstance, ShowWindowFlags nCmdShow, T userdata)
+BOOL InitInstance(HINSTANCE hInstance, ShowWindowFlags nCmdShow, T *userdata)
 {
 	hInst	  = hInstance; // Store instance handle in our global variable
 	HWND hWnd = CreateWindowW(szWindowClass,
@@ -66,7 +62,7 @@ BOOL InitInstance(HINSTANCE hInstance, ShowWindowFlags nCmdShow, T userdata)
 							  nullptr,
 							  nullptr,
 							  hInstance,
-							  &userdata);
+							  userdata);
 	if(!hWnd) { return FALSE; }
 	ShowWindow(hWnd, (int)nCmdShow);
 	UpdateWindow(hWnd); //!< Sends WM_PAINT
@@ -93,18 +89,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE	 hInstance,
 
 	spdlog::info("Starting program.");
 	spdlog::info("Setting up timer ...");
-	UINT TimerId = SetTimer(NULL, 0, 1000, &timer_procedure);
+	auto TimerId = SetTimer(NULL, 0, 1000, &timer_procedure);
 
 	// Initialize global strings
 	LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadStringW(hInstance, IDC_CMUSIKPLATTA, szWindowClass, MAX_LOADSTRING);
 
-	Program program{};
+	std::unique_ptr<mp::IProgram> program(new mp::Program{});
 
 	MyRegisterClass(hInstance);
-	if(!InitInstance<Program>(hInstance,
-							  static_cast<ShowWindowFlags>(nCmdShow),
-							  program)) // Perform application initialization
+	if(!InitInstance<mp::IProgram>(hInstance,
+								   static_cast<ShowWindowFlags>(nCmdShow),
+								   program.get())) // Perform application initialization
 	{ return FALSE; }
 
 	HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_CMUSIKPLATTA));
@@ -177,13 +173,12 @@ std::string to_hex(T t)
 LRESULT CALLBACK ProcessWindowMessage(HWND windowId, UINT messageType, WPARAM wParam, LPARAM lParam)
 {
 	{
-		auto explanation = explain_wm.count(messageType)
-							   ? explain_wm[messageType]
-							   : explain_wm_fallback.count(messageType)
-									 ? explain_wm_fallback[messageType]
-									 : explain_wt.count(messageType)
-										   ? explain_wt[messageType]
-										   : decltype(explain_wm)::mapped_type{};
+		auto explanation = mp::explain_wm.count(messageType)
+							   ? mp::explain_wm[messageType]
+							   : mp::explain_wm_fallback.count(messageType)
+									 ? mp::explain_wm_fallback[messageType]
+									 : mp::explain_wt.count(messageType) ? mp::explain_wt[messageType]
+																		 : decltype(mp::explain_wm)::mapped_type{};
 		if(std::get<1>(explanation).empty())
 		{
 			spdlog::info(to_hex(messageType) + "\t" + "<" + std::get<0>(explanation) + ">" + "\t"
@@ -197,24 +192,23 @@ LRESULT CALLBACK ProcessWindowMessage(HWND windowId, UINT messageType, WPARAM wP
 		else
 		{
 			spdlog::info(to_hex(messageType) + "\t" + "<" + std::get<0>(explanation) + ">" + "\t"
-						  + std::get<1>(explanation));
+						 + std::get<1>(explanation));
 		}
-		Program *program;
+		mp::IProgram *program;
 		if(messageType == WM_NCCREATE)
 		{
-			program
-				= static_cast<Program *>(reinterpret_cast<CREATESTRUCT *>(lParam)->lpCreateParams);
+			program = static_cast<mp::IProgram *>(reinterpret_cast<CREATESTRUCT *>(lParam)->lpCreateParams);
 
 			if(SetWindowLongPtr(windowId, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(program)) == 0)
-			{ spdlog::error(__ERROR__); }
+			{ spdlog::error(MP_HEREWIN32); }
 		}
 		else
 		{
-			program = reinterpret_cast<Program *>(GetWindowLongPtr(windowId, GWLP_USERDATA));
-			if(program == nullptr) { spdlog::error(__ERROR__); }
+			program = reinterpret_cast<mp::IProgram *>(GetWindowLongPtr(windowId, GWLP_USERDATA));
+			if(program == nullptr) { spdlog::error(MP_HEREWIN32); }
 		}
 
-		if(program) {}
+		if(program) { program->HandleMessage(windowId, messageType, wParam, lParam); }
 	}
 
 	switch(messageType)
@@ -225,9 +219,7 @@ LRESULT CALLBACK ProcessWindowMessage(HWND windowId, UINT messageType, WPARAM wP
 			// Parse the menu selections:
 			switch(wmId)
 			{
-				case IDM_ABOUT:
-					DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), windowId, About);
-					break;
+				case IDM_ABOUT: DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), windowId, About); break;
 				case IDM_EXIT: DestroyWindow(windowId); break;
 				default: return DefWindowProc(windowId, messageType, wParam, lParam);
 			}
