@@ -1,9 +1,9 @@
 #pragma once
 #include <fstream>
 #include <iostream>
-#include <spdlog/sinks/basic_file_sink.h>
-#include <spdlog/spdlog.h>
 #include <string>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
 #define MP_HERE		 (std::to_string(__LINE__) + ":" + __FILE__ + " " + __func__ + ":")
 #define MP_HEREWIN32 (MP_HERE + mp::GetLatestErrorMessage())

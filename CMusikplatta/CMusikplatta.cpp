@@ -10,7 +10,6 @@
 #include "framework.h"
 
 #include <iomanip>
-#include <spdlog/spdlog.h>
 #include <sstream>
 #include <string>
 void SetupConsoleWindow()
@@ -24,8 +23,6 @@ void SetupConsoleWindow()
 	if(freopen_s(&output, "CONOUT$", "w", stdout) != 0) throw std::runtime_error(MP_HEREWIN32);
 	std::cout << "cout working" << std::endl;
 	std::cerr << "cerr working" << std::endl;
-	spdlog::info("spdlog working");
-	spdlog::flush_every(std::chrono::seconds(1));
 }
 VOID CALLBACK timer_procedure(HWND hWnd, UINT nMsg, UINT_PTR nIDEvent, DWORD dwTime)
 {
@@ -95,6 +92,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE	 hInstance,
 	UNREFERENCED_PARAMETER(lpCmdLine);
 
 	SetupConsoleWindow();
+	auto console_logger = spdlog::stdout_color_mt("console");
+	spdlog::set_default_logger(console_logger);
 
 	spdlog::info("Starting program.");
 	spdlog::info("Setting up timer ...");
