@@ -8,20 +8,22 @@
 
 namespace mp
 {
-std::shared_ptr<LOGCONTEXTW> AddDefaultDigitizingContext(std::shared_ptr<LOGCONTEXTW> context)
+std::shared_ptr<LOGCONTEXTA> AddDefaultDigitizingContext(std::shared_ptr<LOGCONTEXTA> context)
 {
-	auto size = WTInfoW(WTI_DEFCONTEXT, 0, nullptr);
+	spdlog::info("AddDefaultDigitizingContext");
+	auto size = WTInfoA(WTI_DEFCONTEXT, 0, nullptr);
 
-	if(size != sizeof(LOGCONTEXTW)) MP_THROW_WINTAB_EXCEPTION
-	size = WTInfoW(WTI_DEFCONTEXT, 0, context.get());
-	if(size != sizeof(LOGCONTEXTW)) MP_THROW_WINTAB_EXCEPTION
+	if(size != sizeof(LOGCONTEXTA)) MP_THROW_WINTAB_EXCEPTION
+	size = WTInfoA(WTI_DEFCONTEXT, 0, context.get());
+	if(size != sizeof(LOGCONTEXTA)) MP_THROW_WINTAB_EXCEPTION
 	context->lcSysMode = false;
 	context->lcOptions |= CXO_MESSAGES | CXO_CSRMESSAGES;
 	return context;
 }
 
-std::shared_ptr<LOGCONTEXTW> AddExtensions(std::shared_ptr<LOGCONTEXTW> context)
+std::shared_ptr<LOGCONTEXTA> AddExtensions(std::shared_ptr<LOGCONTEXTA> context)
 {
+	spdlog::info("AddExtensions");
 	for(const auto& value: {
 			PK_BUTTONS,
 			PK_CHANGED,
@@ -50,15 +52,17 @@ std::shared_ptr<LOGCONTEXTW> AddExtensions(std::shared_ptr<LOGCONTEXTW> context)
 	return context;
 }
 
-HCTX OpenWintabContext(HWND windowId, std::shared_ptr<LOGCONTEXTW> contextDescriptor, bool openEnabled)
+HCTX OpenWintabContext(HWND windowId, std::shared_ptr<LOGCONTEXTA> contextDescriptor, bool openEnabled)
 {
-	auto result = WTOpenW(windowId, contextDescriptor.get(), openEnabled);
+	spdlog::info("OpenWintabContext");
+	auto result = WTOpenA(windowId, contextDescriptor.get(), openEnabled);
 	if(result == nullptr) MP_THROW_WINTAB_EXCEPTION
 	return result;
 }
 
 const char* ExtensionTagName(unsigned int extTagIndex)
 {
+	spdlog::info("ExtensionTagName");
 	switch(extTagIndex)
 	{
 		case WTX_OBT: return "WTX_OBT";
@@ -76,6 +80,7 @@ const char* ExtensionTagName(unsigned int extTagIndex)
 
 const char* ExtensionTagDescription(unsigned int extTagIndex)
 {
+	spdlog::info("ExtensionTagDescription");
 	switch(extTagIndex)
 	{
 		case WTX_OBT: return "Out of bounds tracking";
@@ -93,8 +98,9 @@ const char* ExtensionTagDescription(unsigned int extTagIndex)
 
 unsigned int GetNumberOfDevices(HCTX context)
 {
+	spdlog::info("GetNumberOfDevices");
 	unsigned int nofDevices{};
-	if(WTInfoW(WTI_INTERFACE, IFC_NDEVICES, &nofDevices) != sizeof(nofDevices)) MP_THROW_WINTAB_EXCEPTION
+	if(WTInfoA(WTI_INTERFACE, IFC_NDEVICES, &nofDevices) != sizeof(nofDevices)) MP_THROW_WINTAB_EXCEPTION
 	return nofDevices;
 }
 
@@ -268,7 +274,8 @@ void ControlPropertySet(HCTX		 handle,
 						const void*	 value_p,
 						size_t		 value_s)
 {
-	std::unique_ptr<uint8_t> buffer(new uint8_t[sizeof(EXTPROPERTY) + value_s - sizeof(uint8_t)]);
+	// Does not seem to matter if one allocates more than neeed. ( somtimes it does not work anyway ;D )
+	std::unique_ptr<uint8_t> buffer(new uint8_t[sizeof(EXTPROPERTY) + value_s]);
 
 	*((EXTPROPERTY*)buffer.get()) = { (unsigned char)0,
 									  (unsigned char)tabletIndex,
@@ -279,7 +286,8 @@ void ControlPropertySet(HCTX		 handle,
 									  (unsigned long)value_s,
 									  (unsigned char)0 };
 
-	std::memcpy(reinterpret_cast<void*>(&(reinterpret_cast<EXTPROPERTY*>(buffer.get())->data[0])), value_p, value_s);
+	for(int index = 0; index < value_s; index++)
+	{ ((EXTPROPERTY*)buffer.get())->data[index] = reinterpret_cast<const uint8_t*>(value_p)[index]; }
 
 	if(WTExtSet(handle, extTagIndex, buffer.get()) == 0) MP_THROW_WINTAB_EXCEPTION
 

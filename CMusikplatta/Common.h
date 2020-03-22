@@ -1,11 +1,11 @@
 #pragma once
 #include <fstream>
 #include <iostream>
-#include <string>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
+#include <string>
 
-#define MP_HERE		 (std::to_string(__LINE__) + ":" + __FILE__ + " " + __func__ + ":")
+#define MP_HERE		 (std::string(__FILE__) + " " + __func__ + "(" + std::to_string(__LINE__) + "):\t")
 #define MP_HEREWIN32 (MP_HERE + mp::GetLatestErrorMessage())
 
 namespace mp

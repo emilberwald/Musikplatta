@@ -20,11 +20,11 @@ struct wintab_exception: std::runtime_error
 	using std::runtime_error::runtime_error;
 };
 
-std::shared_ptr<LOGCONTEXTW> AddDefaultDigitizingContext(std::shared_ptr<LOGCONTEXTW> context);
+std::shared_ptr<LOGCONTEXTA> AddDefaultDigitizingContext(std::shared_ptr<LOGCONTEXTA> context);
 
-std::shared_ptr<LOGCONTEXTW> AddExtensions(std::shared_ptr<LOGCONTEXTW> context);
+std::shared_ptr<LOGCONTEXTA> AddExtensions(std::shared_ptr<LOGCONTEXTA> context);
 
-HCTX OpenWintabContext(HWND windowId, std::shared_ptr<LOGCONTEXTW> contextDescriptor, bool openEnabled);
+HCTX OpenWintabContext(HWND windowId, std::shared_ptr<LOGCONTEXTA> contextDescriptor, bool openEnabled);
 
 const char* ExtensionTagName(unsigned int extTagIndex);
 
@@ -54,7 +54,8 @@ inline T ControlPropertyGet(HCTX		 handle,
 							unsigned int functionIndex,
 							int			 propertyId)
 {
-	std::unique_ptr<uint8_t> buffer(new uint8_t[sizeof(EXTPROPERTY) + sizeof(T) - sizeof(uint8_t)]);
+	// Does not seem to matter if one allocates more than neeed. ( somtimes it does not work anyway ;D )
+	std::unique_ptr<uint8_t> buffer(new uint8_t[sizeof(EXTPROPERTY) + sizeof(T)]);
 
 	*reinterpret_cast<EXTPROPERTY*>(buffer.get()) = { (unsigned char)0,
 													  (unsigned char)tabletIndex,

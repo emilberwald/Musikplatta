@@ -12,12 +12,13 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include "L2ApiWintab.h"
 void SetupConsoleWindow()
 {
 	AllocConsole();
-	FILE *input	 = nullptr;
-	FILE *errput = nullptr;
-	FILE *output = nullptr;
+	FILE* input	 = nullptr;
+	FILE* errput = nullptr;
+	FILE* output = nullptr;
 	if(freopen_s(&input, "CONIN$", "r", stdin) != 0) throw std::runtime_error(MP_HEREWIN32);
 	if(freopen_s(&errput, "CONOUT$", "w", stderr) != 0) throw std::runtime_error(MP_HEREWIN32);
 	if(freopen_s(&output, "CONOUT$", "w", stdout) != 0) throw std::runtime_error(MP_HEREWIN32);
@@ -40,7 +41,7 @@ HINSTANCE hInst;						 // current instance
 WCHAR	  szTitle[MAX_LOADSTRING];		 // The title bar text
 WCHAR	  szWindowClass[MAX_LOADSTRING]; // the main window class name
 template<class T>
-ATOM			 MyRegisterClass(HINSTANCE hInstance, T *t); //<! FORWARD DECLARATION
+ATOM			 MyRegisterClass(HINSTANCE hInstance, T* t); //<! FORWARD DECLARATION
 LRESULT CALLBACK ProcessWindowMessage(HWND, UINT, WPARAM,
 									  LPARAM);		//<! FORWARD DECLARATION
 INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM); //<! FORWARD DECLARATION
@@ -55,7 +56,7 @@ INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM); //<! FORWARD DECLARATION
 /// <param name="nCmdShow">The n command show.</param>
 /// <returns></returns>
 template<class T>
-BOOL InitInstance(HINSTANCE hInstance, ShowWindowFlags nCmdShow, T *userdata)
+BOOL InitInstance(HINSTANCE hInstance, ShowWindowFlags nCmdShow, T* userdata)
 {
 	hInst	  = hInstance; // Store instance handle in our global variable
 	HWND hWnd = CreateWindowW(szWindowClass,
@@ -144,7 +145,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE	 hInstance,
 /// </param>
 /// <returns></returns>
 template<class T>
-ATOM MyRegisterClass(HINSTANCE hInstance, T *userdata)
+ATOM MyRegisterClass(HINSTANCE hInstance, T* userdata)
 {
 	WNDCLASSEXW wcex;
 	wcex.cbSize		   = sizeof(WNDCLASSEX);
@@ -189,8 +190,8 @@ LRESULT CALLBACK ProcessWindowMessage(HWND windowId, UINT messageType, WPARAM wP
 																		 : decltype(mp::explain_wm)::mapped_type{};
 		if(std::get<1>(explanation).empty())
 		{
-			spdlog::info(to_hex(messageType) + "\t" + "<" + std::get<0>(explanation) + ">" + "\t"
-						 + std::get<1>(explanation));
+			spdlog::debug(to_hex(messageType) + "\t" + "<" + std::get<0>(explanation) + ">" + "\t"
+						  + std::get<1>(explanation));
 		}
 		else if(std::get<0>(explanation).rfind("WT", 0) == 0)
 		{
@@ -199,24 +200,45 @@ LRESULT CALLBACK ProcessWindowMessage(HWND windowId, UINT messageType, WPARAM wP
 		}
 		else
 		{
-			spdlog::info(to_hex(messageType) + "\t" + "<" + std::get<0>(explanation) + ">" + "\t"
-						 + std::get<1>(explanation));
+			spdlog::debug(to_hex(messageType) + "\t" + "<" + std::get<0>(explanation) + ">" + "\t"
+						  + std::get<1>(explanation));
 		}
-		mp::IProgram *program;
+		mp::IProgram* program = nullptr;
 		if(messageType == WM_NCCREATE)
 		{
-			program = static_cast<mp::IProgram *>(reinterpret_cast<CREATESTRUCT *>(lParam)->lpCreateParams);
+			program = static_cast<mp::IProgram*>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
 
+			SetLastError(0);
 			if(SetWindowLongPtr(windowId, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(program)) == 0)
-			{ spdlog::error(MP_HEREWIN32); }
+			{
+				if(GetLastError() != 0) { spdlog::error(MP_HEREWIN32); }
+			}
 		}
 		else
 		{
-			program = reinterpret_cast<mp::IProgram *>(GetWindowLongPtr(windowId, GWLP_USERDATA));
-			if(program == nullptr) { spdlog::error(MP_HEREWIN32); }
+			SetLastError(0);
+			auto windowLongPtr = GetWindowLongPtr(windowId, GWLP_USERDATA);
+			if(windowLongPtr == 0)
+			{
+				if(GetLastError() != 0) { spdlog::error(MP_HEREWIN32); }
+			}
+			else
+			{
+				program = reinterpret_cast<mp::IProgram*>(windowLongPtr);
+			}
 		}
 
-		if(program) { program->HandleMessage(windowId, messageType, wParam, lParam); }
+		if(program)
+		{
+			try
+			{
+				program->HandleMessage(windowId, messageType, wParam, lParam);
+			}
+			catch(mp::wintab_exception ex)
+			{
+				spdlog::warn(ex.what());
+			}
+		}
 	}
 
 	switch(messageType)

@@ -14,7 +14,7 @@ class Program: public IProgram
 	virtual void HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPARAM lparam) override;
 
   private:
-	std::shared_ptr<LOGCONTEXTW> context_descriptor;
+	std::shared_ptr<LOGCONTEXTA> context_descriptor;
 	HCTX						 context;
 	HWND						 window_id;
 };

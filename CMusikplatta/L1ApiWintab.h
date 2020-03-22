@@ -6,10 +6,10 @@
 #include "L0ApiWintab.h"
 #include "L1ApiWintab.h"
 
-typedef BOOL(WINAPI *WTENUMPROC)(HCTX, LPARAM);
-typedef BOOL(WINAPI *WTCONFIGPROC)(HCTX, HWND);
-typedef LRESULT(WINAPI *WTHOOKPROC)(int, WPARAM, LPARAM);
-typedef WTHOOKPROC FAR *LPWTHOOKPROC;
+typedef BOOL(WINAPI* WTENUMPROC)(HCTX, LPARAM);
+typedef BOOL(WINAPI* WTCONFIGPROC)(HCTX, HWND);
+typedef LRESULT(WINAPI* WTHOOKPROC)(int, WPARAM, LPARAM);
+typedef WTHOOKPROC FAR* LPWTHOOKPROC;
 BOOL API				_WTClose(HCTX);
 BOOL API				_WTConfig(HCTX, HWND);
 BOOL API				_WTEnable(HCTX, BOOL);
@@ -28,13 +28,13 @@ BOOL API				_WTMgrCsrButtonMap(HMGR, UINT, LPBYTE, LPBYTE);
 BOOL API				_WTMgrCsrEnable(HMGR, UINT, BOOL);
 BOOL API				_WTMgrCsrExt(HMGR, UINT, UINT, LPVOID);
 BOOL API				_WTMgrCsrPressureBtnMarks(HMGR, UINT, DWORD, DWORD);
-BOOL API				_WTMgrCsrPressureBtnMarksEx(HMGR, UINT, UINT FAR *, UINT FAR *);
-BOOL API				_WTMgrCsrPressureResponse(HMGR, UINT, UINT FAR *, UINT FAR *);
+BOOL API				_WTMgrCsrPressureBtnMarksEx(HMGR, UINT, UINT FAR*, UINT FAR*);
+BOOL API				_WTMgrCsrPressureResponse(HMGR, UINT, UINT FAR*, UINT FAR*);
 BOOL API				_WTMgrExt(HMGR, UINT, LPVOID);
 BOOL API				_WTMgrPacketUnhook(HWTHOOK);
 BOOL API				_WTOverlap(HCTX, BOOL);
 BOOL API				_WTPacket(HCTX, UINT, LPVOID);
-BOOL API				_WTQueuePacketsEx(HCTX, UINT FAR *, UINT FAR *);
+BOOL API				_WTQueuePacketsEx(HCTX, UINT FAR*, UINT FAR*);
 BOOL API				_WTQueueSizeSet(HCTX, int);
 BOOL API				_WTSave(HCTX, LPVOID);
 BOOL API				_WTSet(HCTX, LPLOGCONTEXT);
@@ -66,7 +66,7 @@ UINT API	   _WTInfoW(UINT, UINT, LPVOID);
 UINT API	   _WTMgrDeviceConfig(HMGR, UINT, HWND);
 WTHOOKPROC API _WTMgrPacketHook(HMGR, BOOL, int, WTHOOKPROC);
 
-#define ExternDllFunction(X) extern decltype(_##X) *X;
+#define ExternDllFunction(X) extern decltype(_##X)* X;
 namespace mp
 {
 /// <summary>

@@ -32,7 +32,7 @@ ColumnLimit: 120
 CompactNamespaces: 'false'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'false'
 Cpp11BracedListStyle: 'false'
-DerivePointerAlignment: 'true'
+DerivePointerAlignment: 'false'
 FixNamespaceComments: 'true'
 IncludeBlocks: Regroup
 IndentCaseLabels: 'true'

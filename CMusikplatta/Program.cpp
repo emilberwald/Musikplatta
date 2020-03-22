@@ -11,7 +11,7 @@
 
 namespace mp
 {
-Program::Program(): window_id(nullptr), context_descriptor(new LOGCONTEXTW{})
+Program::Program(): window_id(nullptr), context_descriptor(new LOGCONTEXTA{})
 {
 	this->context_descriptor = AddExtensions(AddDefaultDigitizingContext(this->context_descriptor));
 }
@@ -103,83 +103,83 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 			   point toward the user.
 			*/
 				auto packet = GetDataPacket(this->context, wparam);
-				spdlog::info(("pkButtons {} "
-							  "pkChanged {} "
-							  "pkContext {} "
-							  "pkCursor {} "
-							  "pkNormalPressure {} "
-							  "pkOrientation.orAltitude {} "
-							  "pkOrientation.orAzimuth {} "
-							  "pkOrientation.orTwist {} "
-							  "pkRotation.roPitch {} "
-							  "pkRotation.roRoll {} "
-							  "pkRotation.roYaw {} "
-							  "pkStatus {} "
-							  "pkTangentPressure {} "
-							  "pkTime {} "
-							  "pkX {} "
-							  "pkY {} "
-							  "pkZ {} ",
-							  packet.pkButtons,
-							  packet.pkChanged,
-							  packet.pkContext->unused,
-							  packet.pkCursor,
-							  packet.pkNormalPressure,
-							  packet.pkOrientation.orAltitude,
-							  packet.pkOrientation.orAzimuth,
-							  packet.pkOrientation.orTwist,
-							  packet.pkRotation.roPitch,
-							  packet.pkRotation.roRoll,
-							  packet.pkRotation.roYaw,
-							  packet.pkStatus,
-							  packet.pkTangentPressure,
-							  packet.pkTime,
-							  packet.pkX,
-							  packet.pkY,
-							  packet.pkZ));
+				spdlog::info("pkButtons {} "
+							 "pkChanged {} "
+							 "pkContext {} "
+							 "pkCursor {} "
+							 "pkNormalPressure {} "
+							 "pkOrientation.orAltitude {} "
+							 "pkOrientation.orAzimuth {} "
+							 "pkOrientation.orTwist {} "
+							 "pkRotation.roPitch {} "
+							 "pkRotation.roRoll {} "
+							 "pkRotation.roYaw {} "
+							 "pkStatus {} "
+							 "pkTangentPressure {} "
+							 "pkTime {} "
+							 "pkX {} "
+							 "pkY {} "
+							 "pkZ {} ",
+							 packet.pkButtons,
+							 packet.pkChanged,
+							 (void*)packet.pkContext,
+							 packet.pkCursor,
+							 packet.pkNormalPressure,
+							 packet.pkOrientation.orAltitude,
+							 packet.pkOrientation.orAzimuth,
+							 packet.pkOrientation.orTwist,
+							 packet.pkRotation.roPitch,
+							 packet.pkRotation.roRoll,
+							 packet.pkRotation.roYaw,
+							 packet.pkStatus,
+							 packet.pkTangentPressure,
+							 packet.pkTime,
+							 packet.pkX,
+							 packet.pkY,
+							 packet.pkZ);
 				break;
 			}
 			case WT_PACKETEXT:
 			{
 				auto packet = GetDataPacketExt(this->context, wparam);
-				spdlog::info(("pkBase.nContext->unused {}"
-							  "pkBase.nSerialNumber {} "
-							  "pkBase.nStatus {} "
-							  "pkBase.nTime {} "
-							  "pkExpKeys.nControl {} "
-							  "pkExpKeys.nLocation {} "
-							  "pkExpKeys.nReserved {} "
-							  "pkExpKeys.nState {} "
-							  "pkExpKeys.nTablet {} "
-							  "pkTouchRing.nControl {} "
-							  "pkTouchRing.nMode {} "
-							  "pkTouchRing.nPosition {} "
-							  "pkTouchRing.nReserved {} "
-							  "pkTouchRing.nTablet {} "
-							  "pkTouchStrip.nControl {} "
-							  "pkTouchStrip.nMode {} "
-							  "pkTouchStrip.nPosition {} "
-							  "pkTouchStrip.nReserved {} "
-							  "pkTouchStrip.nTablet {} ",
-							  packet.pkBase.nContext->unused,
-							  packet.pkBase.nSerialNumber,
-							  packet.pkBase.nStatus,
-							  packet.pkBase.nTime,
-							  packet.pkExpKeys.nControl,
-							  packet.pkExpKeys.nLocation,
-							  packet.pkExpKeys.nReserved,
-							  packet.pkExpKeys.nState,
-							  packet.pkExpKeys.nTablet,
-							  packet.pkTouchRing.nControl,
-							  packet.pkTouchRing.nMode,
-							  packet.pkTouchRing.nPosition,
-							  packet.pkTouchRing.nReserved,
-							  packet.pkTouchRing.nTablet,
-							  packet.pkTouchStrip.nControl,
-							  packet.pkTouchStrip.nMode,
-							  packet.pkTouchStrip.nPosition,
-							  packet.pkTouchStrip.nReserved,
-							  packet.pkTouchStrip.nTablet));
+				spdlog::info("pkBase.nContext {}"
+							 "pkBase.nSerialNumber {} "
+							 "pkBase.nStatus {} "
+							 "pkBase.nTime {} "
+							 "pkExpKeys.nControl {} "
+							 "pkExpKeys.nLocation {} "
+							 "pkExpKeys.nReserved {} "
+							 "pkExpKeys.nState {} "
+							 "pkExpKeys.nTablet {} "
+							 "pkTouchRing.nControl {} "
+							 "pkTouchRing.nMode {} "
+							 "pkTouchRing.nPosition {} "
+							 "pkTouchRing.nReserved {} "
+							 "pkTouchRing.nTablet {} "
+							 "pkTouchStrip.nControl {} "
+							 "pkTouchStrip.nMode {} "
+							 "pkTouchStrip.nPosition {} "
+							 "pkTouchStrip.nReserved {} "
+							 "pkTouchStrip.nTablet {} ",
+							 (void*)packet.pkBase.nContext,
+							 packet.pkBase.nSerialNumber,
+							 packet.pkBase.nStatus,
+							 packet.pkBase.nTime,
+							 packet.pkExpKeys.nControl,
+							 packet.pkExpKeys.nLocation,
+							 packet.pkExpKeys.nReserved,
+							 packet.pkExpKeys.nState,
+							 packet.pkExpKeys.nTablet,
+							 packet.pkTouchRing.nControl,
+							 packet.pkTouchRing.nMode,
+							 packet.pkTouchRing.nPosition,
+							 packet.pkTouchRing.nReserved,
+							 packet.pkTouchRing.nTablet,
+							 packet.pkTouchStrip.nControl,
+							 packet.pkTouchStrip.nMode,
+							 packet.pkTouchStrip.nPosition,
+							 packet.pkTouchStrip.nReserved,
+							 packet.pkTouchStrip.nTablet);
 				break;
 			}
 			case WT_CTXOPEN:

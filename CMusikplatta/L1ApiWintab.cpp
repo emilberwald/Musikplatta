@@ -7,7 +7,7 @@
 #include "DllPtr.h"
 #include "L0ApiWintab.h"
 auto Wintab32 = mp::DllPtr(L"Wintab32.dll");
-#define AssignDllFunction(X) decltype(_##X) *X = Wintab32[#X]
+#define AssignDllFunction(X) decltype(_##X)* X = Wintab32[#X]
 namespace mp
 {
 AssignDllFunction(WTInfoA);
