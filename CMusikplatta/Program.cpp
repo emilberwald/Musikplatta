@@ -11,9 +11,12 @@
 
 namespace mp
 {
-Program::Program(): window_id(nullptr), context_descriptor(new LOGCONTEXTA{})
+Program::Program(): window_id(nullptr), context_descriptor(new LOGCONTEXTA{}), extensions()
 {
-	this->context_descriptor = AddExtensions(AddDefaultDigitizingContext(this->context_descriptor));
+	this->context_descriptor			= AddExtensions(AddDefaultDigitizingContext(this->context_descriptor));
+	this->wintab_device_capabilities	= GetWintabDeviceCapabilities();
+	this->wintab_cursor_capabilities	= GetWintabCursorCapabilities();
+	this->wintab_extension_capabilities = GetWintabExtensionCapabilities();
 }
 
 Program::~Program() {}
@@ -35,25 +38,31 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 				{
 					case WA_INACTIVE:
 					{
+						spdlog::info("{} => remove overrides, set overlap order to bottom.",
+									 std::get<0>(explain_wm[messageType]));
 						// NOTE: It is recommended that applications remove their overrides when the application's main
 						// window is no longer active (use WM_ACTIVATE). Extension overrides take effect across the entire
 						// system; if an application leaves its overrides in place, that control will not function correctly
 						// in other applications.
 						RemoveAllOverrides(this->context);
+						this->extensions.clear();
 						// When applications receive the WM_ACTIVATE message, they should push their contexts to the bottom
 						// of the overlap order if their application is being deactivated, and should bring their context to
 						// the top if they are being activated.
-						if(WTOverlap(this->context, FALSE) == 0) MP_THROW_WINTAB_EXCEPTION
+						MP_THROW_IF(WTOverlap(this->context, FALSE) == 0, mp::wintab_exception)
 						break;
 					}
 					case WA_ACTIVE:
 					case WA_CLICKACTIVE:
 					{
-						AddAllOverrides(this->context);
+						spdlog::info("{} => add overrides, set overlap order to top.",
+									 std::get<0>(explain_wm[messageType]));
+						auto allOverrides = AddAllOverrides(this->context);
+						this->extensions.insert(this->extensions.begin(), allOverrides.begin(), allOverrides.end());
 						// When applications receive the WM_ACTIVATE message, they should push their contexts to the bottom
 						// of the overlap order if their application is being deactivated, and should bring their context to
 						// the top if they are being activated.
-						if(WTOverlap(this->context, TRUE) == 0) MP_THROW_WINTAB_EXCEPTION
+						MP_THROW_IF(WTOverlap(this->context, TRUE) == 0, mp::wintab_exception)
 						break;
 					}
 					default: break;
@@ -67,13 +76,15 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 					case SC_MINIMIZE:
 					{
 						// Applications should also disable their contexts when they are minimized.
-						if(WTEnable(this->context, FALSE) == 0) MP_THROW_WINTAB_EXCEPTION
+						spdlog::info("{} => disable context.", std::get<0>(explain_wm[messageType]));
+						MP_THROW_IF(WTEnable(this->context, FALSE) == 0, mp::wintab_exception)
 						break;
 					}
 					case SC_RESTORE:
 					case SC_MAXIMIZE:
 					{
-						if(WTEnable(this->context, TRUE) == 0) MP_THROW_WINTAB_EXCEPTION
+						spdlog::info("{} => enable context.", std::get<0>(explain_wm[messageType]));
+						MP_THROW_IF(WTEnable(this->context, TRUE) == 0, mp::wintab_exception)
 						break;
 					}
 					default: break;
@@ -82,11 +93,12 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 			}
 			case WM_LBUTTONDOWN:
 			{
-				// stylus button
+				spdlog::info("{} => stylus button down.", std::get<0>(explain_wm[messageType]));
 				break;
 			}
 			case WM_LBUTTONUP:
 			{
+				spdlog::info("{} => stylus button up.", std::get<0>(explain_wm[messageType]));
 				// stylus button
 				break;
 			}
@@ -215,7 +227,7 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 			{
 				/*
 				+-------------+-------------------------------------------------------------------------------------------------------------------------+
-				| Description | The WT_CTXCLOSE message is sent to the owning winÂ­dow and to any manager windows when a
+				| Description | The WT_CTXCLOSE message is sent to the owning win­dow and to any manager windows when a
 			   context is about to be closed.  |
 				+-------------+-----------+-------------------------------------------------------------------------------------------------------------+
 				|             | Parameter | Description |

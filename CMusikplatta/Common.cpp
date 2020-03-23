@@ -2,6 +2,10 @@
 
 namespace mp
 {
+std::basic_string<char> as_string(std::basic_string<char> input) { return input; }
+
+std::basic_string<wchar_t> as_wstring(std::basic_string<wchar_t> input) { return input; }
+
 std::basic_string<char> as_string(std::basic_string<wchar_t> input)
 {
 	auto nof_required_bytes
