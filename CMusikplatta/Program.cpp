@@ -115,40 +115,92 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 			   point toward the user.
 			*/
 				auto packet = GetDataPacket(this->context, wparam);
-				spdlog::info("pkButtons {} "
-							 "pkChanged {} "
-							 "pkContext {} "
-							 "pkCursor {} "
-							 "pkNormalPressure {} "
-							 "pkOrientation.orAltitude {} "
-							 "pkOrientation.orAzimuth {} "
-							 "pkOrientation.orTwist {} "
-							 "pkRotation.roPitch {} "
-							 "pkRotation.roRoll {} "
-							 "pkRotation.roYaw {} "
-							 "pkStatus {} "
-							 "pkTangentPressure {} "
-							 "pkTime {} "
-							 "pkX {} "
-							 "pkY {} "
-							 "pkZ {} ",
-							 packet.pkButtons,
-							 packet.pkChanged,
-							 (void*)packet.pkContext,
-							 packet.pkCursor,
-							 packet.pkNormalPressure,
-							 packet.pkOrientation.orAltitude,
-							 packet.pkOrientation.orAzimuth,
-							 packet.pkOrientation.orTwist,
-							 packet.pkRotation.roPitch,
-							 packet.pkRotation.roRoll,
-							 packet.pkRotation.roYaw,
-							 packet.pkStatus,
-							 packet.pkTangentPressure,
-							 packet.pkTime,
-							 packet.pkX,
-							 packet.pkY,
-							 packet.pkZ);
+
+				auto normal_pressure = double(packet.pkNormalPressure)
+									   / (double(this->wintab_device_capabilities.normal_pressure.axMax)
+										  - double(this->wintab_device_capabilities.normal_pressure.axMin));
+				auto x = double(packet.pkX)
+						 / (double(this->wintab_device_capabilities.position[0].axMax)
+							- double(this->wintab_device_capabilities.position[0].axMin));
+				auto y = double(packet.pkY)
+						 / (double(this->wintab_device_capabilities.position[1].axMax)
+							- double(this->wintab_device_capabilities.position[1].axMin));
+				auto z = double(packet.pkZ)
+						 / (double(this->wintab_device_capabilities.position[2].axMax)
+							- double(this->wintab_device_capabilities.position[2].axMin));
+				auto azimuth = double(packet.pkOrientation.orAzimuth)
+							   / (double(this->wintab_device_capabilities.orientation[0].axMax)
+								  - double(this->wintab_device_capabilities.orientation[0].axMin));
+				auto elevation = double(packet.pkOrientation.orAltitude)
+								 / (double(this->wintab_device_capabilities.orientation[1].axMax)
+									- double(this->wintab_device_capabilities.orientation[1].axMin));
+				spdlog::info("({}:{}) ({:03.5f}) ({:03.5f},{:03.5f},{:03.5f}) ({:03.5f},{:03.5f})",
+							 GetName(GetButtonState(packet)),
+							 GetButtonNumber(packet),
+							 normal_pressure,
+							 x,
+							 y,
+							 z,
+							 azimuth,
+							 elevation);
+				spdlog::debug("pkButtons:State {} "
+							  "pkButtons:Number {} "
+							  "pkChanged {} "
+							  "pkContext {} "
+							  "pkCursor {} "
+							  "pkNormalPressure {:03.3f} "
+							  "pkOrientation.orAzimuth {:03.3f} "
+							  "pkOrientation.orAltitude {:03.3f} "
+							  "pkOrientation.orTwist {:03.3f} "
+							  "pkRotation.roPitch {:03.3f} "
+							  "pkRotation.roRoll {:03.3f} "
+							  "pkRotation.roYaw {:03.3f} "
+							  "pkStatus {} "
+							  "pkTangentPressure {:03.3f} "
+							  "pkTime {} "
+							  "pkX {:03.3f} "
+							  "pkY {:03.3f} "
+							  "pkZ {:03.3f} ",
+							  GetName(GetButtonState(packet)),
+							  GetButtonNumber(packet),
+							  packet.pkChanged,
+							  (void*)packet.pkContext,
+							  packet.pkCursor,
+							  double(packet.pkNormalPressure)
+								  / (double(this->wintab_device_capabilities.normal_pressure.axMax)
+									 - double(this->wintab_device_capabilities.normal_pressure.axMin)),
+							  double(packet.pkOrientation.orAzimuth)
+								  / (double(this->wintab_device_capabilities.orientation[0].axMax)
+									 - double(this->wintab_device_capabilities.orientation[0].axMin)),
+							  double(packet.pkOrientation.orAltitude)
+								  / (double(this->wintab_device_capabilities.orientation[1].axMax)
+									 - double(this->wintab_device_capabilities.orientation[1].axMin)),
+							  double(packet.pkOrientation.orTwist)
+								  / (double(this->wintab_device_capabilities.orientation[2].axMax)
+									 - double(this->wintab_device_capabilities.orientation[2].axMin)),
+							  double(packet.pkRotation.roPitch)
+								  / (double(this->wintab_device_capabilities.rotation[0].axMax)
+									 - double(this->wintab_device_capabilities.rotation[0].axMin)),
+							  double(packet.pkRotation.roRoll)
+								  / (double(this->wintab_device_capabilities.rotation[1].axMax)
+									 - double(this->wintab_device_capabilities.rotation[1].axMin)),
+							  double(packet.pkRotation.roYaw)
+								  / (double(this->wintab_device_capabilities.rotation[2].axMax)
+									 - double(this->wintab_device_capabilities.rotation[2].axMin)),
+							  packet.pkStatus,
+							  double(packet.pkTangentPressure)
+								  / (double(this->wintab_device_capabilities.tangential_pressure.axMax)
+									 - double(this->wintab_device_capabilities.tangential_pressure.axMin)),
+							  packet.pkTime,
+							  double(packet.pkX)
+								  / (double(this->wintab_device_capabilities.position[0].axMax)
+									 - double(this->wintab_device_capabilities.position[0].axMin)),
+							  double(packet.pkY)
+								  / (double(this->wintab_device_capabilities.position[1].axMax)
+									 - double(this->wintab_device_capabilities.position[1].axMin)),
+							  double(packet.pkZ)
+								  / (double(this->wintab_device_capabilities.position[2].axMax)
+									 - double(this->wintab_device_capabilities.position[2].axMin)));
 				break;
 			}
 			case WT_PACKETEXT:

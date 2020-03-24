@@ -185,6 +185,10 @@ WintabExtensionCapabilities GetWintabExtensionCapabilities();
 
 WintabDeviceCapabilities GetWintabDeviceCapabilities();
 
+std::string GetName(TabletButtonState tabletButtonState);
+
+WORD GetButtonNumber(PACKET const& packet);
+
 std::string PropertyIdName(int propertyId);
 
 template<class T>

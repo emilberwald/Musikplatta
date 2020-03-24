@@ -94,7 +94,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE	 hInstance,
 
 	SetupConsoleWindow();
 	auto console_logger = spdlog::stdout_color_mt("console");
-	console_logger->set_level(spdlog::level::warn);
+	//console_logger->set_level(spdlog::level::warn);
 	spdlog::set_default_logger(console_logger);
 
 	spdlog::info("Starting program.");

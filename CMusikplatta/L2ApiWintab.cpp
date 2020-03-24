@@ -579,6 +579,17 @@ WintabDeviceCapabilities GetWintabDeviceCapabilities()
 	return caps;
 }
 
+std::string GetName(TabletButtonState s)
+{
+	switch(s)
+	{
+		case mp::no_change: return "no_change";
+		case mp::button_released: return "button_released";
+		case mp::button_pressed: return "button_pressed";
+		default: return std::to_string(static_cast<WORD>(s));
+	}
+}
+
 TabletButtonState GetButtonState(PACKET const& packet)
 {
 	return static_cast<TabletButtonState>(HIWORD(packet.pkButtons));
