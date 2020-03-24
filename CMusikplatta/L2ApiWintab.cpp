@@ -281,14 +281,105 @@ std::string WTInfoName(int WTI_CATEGORY, int INDEX)
 {
 	switch(WTI_CATEGORY)
 	{
-		case WTI_CURSORS: return "WTI_CURSORS";
-		case WTI_DDCTXS: return "WTI_DDCTXS";
+		case WTI_CURSORS:
+			return std::string("WTI_CURSORS") + ":" + std::invoke([&INDEX]() -> std::string {
+					   switch(INDEX)
+					   {
+						   case CSR_NAME: return "CSR_NAME";
+						   case CSR_ACTIVE: return "CSR_ACTIVE";
+						   case CSR_PKTDATA: return "CSR_PKTDATA";
+						   case CSR_BUTTONS: return "CSR_BUTTONS";
+						   case CSR_BUTTONBITS: return "CSR_BUTTONBITS";
+						   case CSR_BTNNAMES: return "CSR_BTNNAMES";
+						   case CSR_BUTTONMAP: return "CSR_BUTTONMAP";
+						   case CSR_SYSBTNMAP: return "CSR_SYSBTNMAP";
+						   case CSR_NPBUTTON: return "CSR_NPBUTTON";
+						   case CSR_NPBTNMARKS: return "CSR_NPBTNMARKS";
+						   case CSR_NPRESPONSE: return "CSR_NPRESPONSE";
+						   case CSR_TPBUTTON: return "CSR_TPBUTTON";
+						   case CSR_TPBTNMARKS: return "CSR_TPBTNMARKS";
+						   case CSR_TPRESPONSE: return "CSR_TPRESPONSE";
+						   case CSR_PHYSID: return "CSR_PHYSID";
+						   case CSR_MODE: return "CSR_MODE";
+						   case CSR_MINPKTDATA: return "CSR_MINPKTDATA";
+						   case CSR_MINBUTTONS: return "CSR_MINBUTTONS";
+						   case CSR_CAPABILITIES: return "CSR_CAPABILITIES";
+						   case CSR_TYPE: return "CSR_TYPE";
+						   default: return "<CSR_UNKNOWN>";
+					   }
+				   });
+		case WTI_DEVICES:
+			return std::string("WTI_DEVICES") + ":" + std::invoke([&INDEX]() -> std::string {
+					   switch(INDEX)
+					   {
+						   case DVC_NAME: return "DVC_NAME";
+						   case DVC_HARDWARE: return "DVC_HARDWARE";
+						   case DVC_NCSRTYPES: return "DVC_NCSRTYPES";
+						   case DVC_FIRSTCSR: return "DVC_FIRSTCSR";
+						   case DVC_PKTRATE: return "DVC_PKTRATE";
+						   case DVC_PKTDATA: return "DVC_PKTDATA";
+						   case DVC_PKTMODE: return "DVC_PKTMODE";
+						   case DVC_CSRDATA: return "DVC_CSRDATA";
+						   case DVC_XMARGIN: return "DVC_XMARGIN";
+						   case DVC_YMARGIN: return "DVC_YMARGIN";
+						   case DVC_ZMARGIN: return "DVC_ZMARGIN";
+						   case DVC_X: return "DVC_X";
+						   case DVC_Y: return "DVC_Y";
+						   case DVC_Z: return "DVC_Z";
+						   case DVC_NPRESSURE: return "DVC_NPRESSURE";
+						   case DVC_TPRESSURE: return "DVC_TPRESSURE";
+						   case DVC_ORIENTATION: return "DVC_ORIENTATION";
+						   case DVC_ROTATION: return "DVC_ROTATION";
+						   case DVC_PNPID: return "DVC_PNPID";
+						   default: return "<DVC_UNKNOWN>";
+					   }
+				   });
 		case WTI_DEFCONTEXT: return "WTI_DEFCONTEXT";
 		case WTI_DEFSYSCTX: return "WTI_DEFSYSCTX";
-		case WTI_DEVICES: return "WTI_DEVICES";
-		case WTI_DSCTXS: return "WTI_DSCTXS";
+		case WTI_DDCTXS: return "WTI_DDCTXS";
+		case WTI_DSCTXS:
+			return std::string("WTI_DSCTXS") + ":" + std::invoke([&INDEX]() -> std::string {
+					   switch(INDEX)
+					   {
+						   case CTX_NAME: return "CTX_NAME";
+						   case CTX_OPTIONS: return "CTX_OPTIONS";
+						   case CTX_STATUS: return "CTX_STATUS";
+						   case CTX_LOCKS: return "CTX_LOCKS";
+						   case CTX_MSGBASE: return "CTX_MSGBASE";
+						   case CTX_DEVICE: return "CTX_DEVICE";
+						   case CTX_PKTRATE: return "CTX_PKTRATE";
+						   case CTX_PKTDATA: return "CTX_PKTDATA";
+						   case CTX_PKTMODE: return "CTX_PKTMODE";
+						   case CTX_MOVEMASK: return "CTX_MOVEMASK";
+						   case CTX_BTNDNMASK: return "CTX_BTNDNMASK";
+						   case CTX_BTNUPMASK: return "CTX_BTNUPMASK";
+						   case CTX_INORGX: return "CTX_INORGX";
+						   case CTX_INORGY: return "CTX_INORGY";
+						   case CTX_INORGZ: return "CTX_INORGZ";
+						   case CTX_INEXTX: return "CTX_INEXTX";
+						   case CTX_INEXTY: return "CTX_INEXTY";
+						   case CTX_INEXTZ: return "CTX_INEXTZ";
+						   case CTX_OUTORGX: return "CTX_OUTORGX";
+						   case CTX_OUTORGY: return "CTX_OUTORGY";
+						   case CTX_OUTORGZ: return "CTX_OUTORGZ";
+						   case CTX_OUTEXTX: return "CTX_OUTEXTX";
+						   case CTX_OUTEXTY: return "CTX_OUTEXTY";
+						   case CTX_OUTEXTZ: return "CTX_OUTEXTZ";
+						   case CTX_SENSX: return "CTX_SENSX";
+						   case CTX_SENSY: return "CTX_SENSY";
+						   case CTX_SENSZ: return "CTX_SENSZ";
+						   case CTX_SYSMODE: return "CTX_SYSMODE";
+						   case CTX_SYSORGX: return "CTX_SYSORGX";
+						   case CTX_SYSORGY: return "CTX_SYSORGY";
+						   case CTX_SYSEXTX: return "CTX_SYSEXTX";
+						   case CTX_SYSEXTY: return "CTX_SYSEXTY";
+						   case CTX_SYSSENSX: return "CTX_SYSSENSX";
+						   case CTX_SYSSENSY: return "CTX_SYSSENSY";
+						   default: return "<CTX_UNKNOWN>";
+					   }
+				   });
 		case WTI_EXTENSIONS:
-			return (std::string("WTI_EXTENSIONS") + std::invoke([&INDEX]() -> std::string {
+			return (std::string("WTI_EXTENSIONS") + ":" + std::invoke([&INDEX]() -> std::string {
 						switch(INDEX)
 						{
 							case EXT_NAME: return "EXT_NAME";
@@ -301,13 +392,42 @@ std::string WTInfoName(int WTI_CATEGORY, int INDEX)
 							case EXT_DEFSYSCTX: return "EXT_DEFSYSCTX";
 							case EXT_CURSORS: return "EXT_CURSORS";
 							case EXT_DEVICES: return "EXT_DEVICES";
-							case EXT_MAX: return "EXT_MAX";
-							default: return "<INDEX UNKNOWN>";
+							default: return "<EXT_UNKNOWN>";
 						}
 					}));
-		case WTI_INTERFACE: return "WTI_INTERFACE";
-		case WTI_STATUS: return "WTI_STATUS";
-		default: return "<WTI CATEGORY UNKNOWN>";
+		case WTI_INTERFACE:
+			return std::string("WTI_INTERFACE") + ":" + std::invoke([&INDEX]() {
+					   switch(INDEX)
+					   {
+						   case IFC_WINTABID: return "IFC_WINTABID";
+						   case IFC_SPECVERSION: return "IFC_SPECVERSION";
+						   case IFC_IMPLVERSION: return "IFC_IMPLVERSION";
+						   case IFC_NDEVICES: return "IFC_NDEVICES";
+						   case IFC_NCURSORS: return "IFC_NCURSORS";
+						   case IFC_NCONTEXTS: return "IFC_NCONTEXTS";
+						   case IFC_CTXOPTIONS: return "IFC_CTXOPTIONS";
+						   case IFC_CTXSAVESIZE: return "IFC_CTXSAVESIZE";
+						   case IFC_NEXTENSIONS: return "IFC_NEXTENSIONS";
+						   case IFC_NMANAGERS: return "IFC_NMANAGERS";
+						   default: return "<IFC_UNKNOWN>";
+					   }
+				   });
+		case WTI_STATUS:
+			return std::string("WTI_STATUS") + ":" + std::invoke([&INDEX]() -> std::string {
+					   switch(INDEX)
+					   {
+						   case STA_CONTEXTS: return "STA_CONTEXTS";
+						   case STA_SYSCTXS: return "STA_SYSCTXS";
+						   case STA_PKTRATE: return "STA_PKTRATE";
+						   case STA_PKTDATA: return "STA_PKTDATA";
+						   case STA_MANAGERS: return "STA_MANAGERS";
+						   case STA_SYSTEM: return "STA_SYSTEM";
+						   case STA_BUTTONUSE: return "STA_BUTTONUSE";
+						   case STA_SYSBTNUSE: return "STA_SYSBTNUSE";
+						   default: return "<STA_UNKNOWN>";
+					   }
+				   });
+		default: return "<CATEGORY_UNKNOWN>";
 	}
 }
 
@@ -318,31 +438,28 @@ T get_valueA(int WTI_CATEGORY, int INDEX)
 	auto expectedSize = WTInfoA(WTI_EXTENSIONS, EXT_TAG, nullptr);
 
 	MP_WARN_IF_WHAT(expectedSize != sizeof(T),
-					" {} = expectedSize != sizeof(T) = {} : {} {}",
+					" {} = expectedSize != sizeof(T) = {} : {}",
 					expectedSize,
 					sizeof(T),
-					WTI_CATEGORY,
-					INDEX);
+					WTInfoName(WTI_CATEGORY, INDEX));
 
 	std::unique_ptr<uint8_t> buffer(new uint8_t[expectedSize]);
 
 	auto actualSize = WTInfoA(WTI_EXTENSIONS, EXT_TAG, buffer.get());
 
 	MP_WARN_IF_WHAT(actualSize != expectedSize,
-					" {} = actualSize != expectedSize = {} : {} {}",
-					WTI_CATEGORY,
-					INDEX,
+					" {} = actualSize != expectedSize = {} : {} ",
 					actualSize,
-					expectedSize);
+					expectedSize,
+					WTInfoName(WTI_CATEGORY, INDEX));
 
 	MP_THROW_IF_WHAT(actualSize == 0, mp::wintab_exception, "{} {}", WTI_CATEGORY, INDEX);
 
 	MP_WARN_IF_WHAT(actualSize != sizeof(T),
-					" {} = actualSize != sizeof(T) = {} : {} {}",
+					" {} = actualSize != sizeof(T) = {} : {}",
 					actualSize,
 					sizeof(T),
-					WTI_CATEGORY,
-					INDEX);
+					WTInfoName(WTI_CATEGORY, INDEX));
 
 	t = *reinterpret_cast<T*>(buffer.get());
 
@@ -357,14 +474,13 @@ std::string get_stringA(int WTI_CATEGORY, int INDEX)
 
 	if(actualSize != expectedSize)
 	{
-		spdlog::warn(MP_HERE + " {} = actualSize != expectedSize = {} : {} {}",
+		spdlog::warn(MP_HERE + " {} = actualSize != expectedSize = {} : {}",
 					 actualSize,
 					 expectedSize,
-					 WTI_CATEGORY,
-					 INDEX);
+					 WTInfoName(WTI_CATEGORY, INDEX));
 	}
 
-	MP_THROW_IF_WHAT(actualSize == 0, mp::wintab_exception, "{} {}", WTI_CATEGORY, INDEX);
+	MP_THROW_IF_WHAT(actualSize == 0, mp::wintab_exception, "{}", WTInfoName(WTI_CATEGORY, INDEX));
 
 	return as_string(std::basic_string<char>(buffer.get(), actualSize));
 }
@@ -378,13 +494,12 @@ std::vector<T> get_vectorA(int WTI_CATEGORY, int INDEX)
 	auto			   actualSize = WTInfoA(WTI_CATEGORY, INDEX, buffer.get());
 
 	MP_WARN_IF_WHAT(actualSize != expectedSize,
-					" {} = actualSize != expectedSize = {} : {} {}",
+					" {} = actualSize != expectedSize = {} : {}",
 					actualSize,
 					expectedSize,
-					WTI_CATEGORY,
-					INDEX);
+					WTInfoName(WTI_CATEGORY, INDEX));
 
-	MP_WARN_IF_WHAT(actualSize == 0, " : {} {} ", WTI_CATEGORY, INDEX);
+	MP_WARN_IF_WHAT(actualSize == 0, " : {} ", WTInfoName(WTI_CATEGORY, INDEX));
 
 	for(auto index = 0; index < actualSize / sizeof(UINT); ++index) { result.push_back(buffer.get()[index]); }
 
