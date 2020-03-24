@@ -3,6 +3,7 @@
 #include "CMusikplatta.h"
 
 #include "Common.h"
+#include "L2ApiWintab.h"
 #include "Program.h"
 #include "ShowWindowFlags.h"
 #include "explain_wm.h"
@@ -12,7 +13,6 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
-#include "L2ApiWintab.h"
 void SetupConsoleWindow()
 {
 	AllocConsole();
@@ -27,11 +27,11 @@ void SetupConsoleWindow()
 }
 VOID CALLBACK timer_procedure(HWND hWnd, UINT nMsg, UINT_PTR nIDEvent, DWORD dwTime)
 {
-	spdlog::info("Run loop. windowId={} mMsg={} nIDEvent={} dwTime={}",
-				 hWnd ? hWnd->unused : 0,
-				 nMsg,
-				 nIDEvent,
-				 dwTime);
+	spdlog::debug("Run loop. windowId={} mMsg={} nIDEvent={} dwTime={}",
+				  hWnd ? (void*)hWnd : 0,
+				  nMsg,
+				  nIDEvent,
+				  dwTime);
 }
 
 #define MAX_LOADSTRING 100
@@ -94,6 +94,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE	 hInstance,
 
 	SetupConsoleWindow();
 	auto console_logger = spdlog::stdout_color_mt("console");
+	console_logger->set_level(spdlog::level::warn);
 	spdlog::set_default_logger(console_logger);
 
 	spdlog::info("Starting program.");
@@ -195,8 +196,8 @@ LRESULT CALLBACK ProcessWindowMessage(HWND windowId, UINT messageType, WPARAM wP
 		}
 		else if(std::get<0>(explanation).rfind("WT", 0) == 0)
 		{
-			spdlog::info(to_hex(messageType) + "\t" + "<" + std::get<0>(explanation) + ">" + "\t"
-						 + std::get<1>(explanation));
+			spdlog::debug(to_hex(messageType) + "\t" + "<" + std::get<0>(explanation) + ">" + "\t"
+						  + std::get<1>(explanation));
 		}
 		else
 		{

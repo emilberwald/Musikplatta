@@ -273,8 +273,42 @@ unsigned int GetNumberOfDevices(HCTX context)
 PACKET GetDataPacket(HCTX context, WPARAM wparam)
 {
 	PACKET packet{};
-	if(WTPacket(context, wparam, &packet) == 0) { spdlog::warn("Packet not found. {} {}", context->unused, wparam); }
+	MP_WARN_IF(WTPacket(context, wparam, &packet) == 0);
 	return packet;
+}
+
+std::string WTInfoName(int WTI_CATEGORY, int INDEX)
+{
+	switch(WTI_CATEGORY)
+	{
+		case WTI_CURSORS: return "WTI_CURSORS";
+		case WTI_DDCTXS: return "WTI_DDCTXS";
+		case WTI_DEFCONTEXT: return "WTI_DEFCONTEXT";
+		case WTI_DEFSYSCTX: return "WTI_DEFSYSCTX";
+		case WTI_DEVICES: return "WTI_DEVICES";
+		case WTI_DSCTXS: return "WTI_DSCTXS";
+		case WTI_EXTENSIONS:
+			return (std::string("WTI_EXTENSIONS") + std::invoke([&INDEX]() -> std::string {
+						switch(INDEX)
+						{
+							case EXT_NAME: return "EXT_NAME";
+							case EXT_TAG: return "EXT_TAG";
+							case EXT_MASK: return "EXT_MASK";
+							case EXT_SIZE: return "EXT_SIZE";
+							case EXT_AXES: return "EXT_AXES";
+							case EXT_DEFAULT: return "EXT_DEFAULT";
+							case EXT_DEFCONTEXT: return "EXT_DEFCONTEXT";
+							case EXT_DEFSYSCTX: return "EXT_DEFSYSCTX";
+							case EXT_CURSORS: return "EXT_CURSORS";
+							case EXT_DEVICES: return "EXT_DEVICES";
+							case EXT_MAX: return "EXT_MAX";
+							default: return "<INDEX UNKNOWN>";
+						}
+					}));
+		case WTI_INTERFACE: return "WTI_INTERFACE";
+		case WTI_STATUS: return "WTI_STATUS";
+		default: return "<WTI CATEGORY UNKNOWN>";
+	}
 }
 
 template<class T>
@@ -283,17 +317,32 @@ T get_valueA(int WTI_CATEGORY, int INDEX)
 	T	 t{};
 	auto expectedSize = WTInfoA(WTI_EXTENSIONS, EXT_TAG, nullptr);
 
-	MP_WARN_IF(expectedSize != sizeof(T));
+	MP_WARN_IF_WHAT(expectedSize != sizeof(T),
+					" {} = expectedSize != sizeof(T) = {} : {} {}",
+					expectedSize,
+					sizeof(T),
+					WTI_CATEGORY,
+					INDEX);
 
 	std::unique_ptr<uint8_t> buffer(new uint8_t[expectedSize]);
 
 	auto actualSize = WTInfoA(WTI_EXTENSIONS, EXT_TAG, buffer.get());
 
-	if(actualSize != expectedSize) { spdlog::warn("{} = actualSize != expectedSize = {}", actualSize, expectedSize); }
+	MP_WARN_IF_WHAT(actualSize != expectedSize,
+					" {} = actualSize != expectedSize = {} : {} {}",
+					WTI_CATEGORY,
+					INDEX,
+					actualSize,
+					expectedSize);
 
-	MP_THROW_IF(actualSize == 0, mp::wintab_exception);
+	MP_THROW_IF_WHAT(actualSize == 0, mp::wintab_exception, "{} {}", WTI_CATEGORY, INDEX);
 
-	if(actualSize != sizeof(T)) { spdlog::warn("{} = actualSize != sizeof(T) = {}", actualSize, sizeof(T)); }
+	MP_WARN_IF_WHAT(actualSize != sizeof(T),
+					" {} = actualSize != sizeof(T) = {} : {} {}",
+					actualSize,
+					sizeof(T),
+					WTI_CATEGORY,
+					INDEX);
 
 	t = *reinterpret_cast<T*>(buffer.get());
 
@@ -306,9 +355,16 @@ std::string get_stringA(int WTI_CATEGORY, int INDEX)
 	std::unique_ptr<char> buffer(new char[expectedSize]);
 	auto				  actualSize = WTInfoA(WTI_CATEGORY, INDEX, buffer.get());
 
-	if(actualSize != expectedSize) { spdlog::warn("{} = actualSize != expectedSize = {}", actualSize, expectedSize); }
+	if(actualSize != expectedSize)
+	{
+		spdlog::warn(MP_HERE + " {} = actualSize != expectedSize = {} : {} {}",
+					 actualSize,
+					 expectedSize,
+					 WTI_CATEGORY,
+					 INDEX);
+	}
 
-	MP_THROW_IF(actualSize == 0, mp::wintab_exception);
+	MP_THROW_IF_WHAT(actualSize == 0, mp::wintab_exception, "{} {}", WTI_CATEGORY, INDEX);
 
 	return as_string(std::basic_string<char>(buffer.get(), actualSize));
 }
@@ -321,10 +377,17 @@ std::vector<T> get_vectorA(int WTI_CATEGORY, int INDEX)
 	std::unique_ptr<T> buffer(new T[expectedSize / sizeof(T)]);
 	auto			   actualSize = WTInfoA(WTI_CATEGORY, INDEX, buffer.get());
 
-	if(actualSize != expectedSize) { spdlog::warn("{} = actualSize != expectedSize = {}", actualSize, expectedSize); }
+	MP_WARN_IF_WHAT(actualSize != expectedSize,
+					" {} = actualSize != expectedSize = {} : {} {}",
+					actualSize,
+					expectedSize,
+					WTI_CATEGORY,
+					INDEX);
 
-	MP_WARN_IF(actualSize == 0);
+	MP_WARN_IF_WHAT(actualSize == 0, " : {} {} ", WTI_CATEGORY, INDEX);
+
 	for(auto index = 0; index < actualSize / sizeof(UINT); ++index) { result.push_back(buffer.get()[index]); }
+
 	return result;
 }
 
@@ -334,9 +397,9 @@ WintabCursorCapabilities GetWintabCursorCapabilities()
 	caps.name						   = get_stringA(WTI_CURSORS, CSR_NAME);
 	caps.active						   = get_valueA<BOOL>(WTI_CURSORS, CSR_ACTIVE);
 	caps.supported_packet_data_bitmask = get_valueA<WTPKT>(WTI_CURSORS, CSR_PKTDATA);
-	caps.nof_buttons = get_valueA<UINT>(WTI_CURSORS, CSR_BUTTONS);
-	caps.nof_button_bits = get_valueA<UINT>(WTI_CURSORS, CSR_BUTTONBITS);
-	auto button_names	 = get_vectorA<char>(WTI_CURSORS, CSR_BTNNAMES);
+	caps.nof_buttons				   = get_valueA<UINT>(WTI_CURSORS, CSR_BUTTONS);
+	caps.nof_button_bits			   = get_valueA<UINT>(WTI_CURSORS, CSR_BUTTONBITS);
+	auto button_names				   = get_vectorA<char>(WTI_CURSORS, CSR_BTNNAMES);
 	for(auto button_begin = button_names.begin(); button_begin != button_names.end();)
 	{
 		auto button_end = std::find(button_begin + 1, button_names.end(), '\0');
@@ -411,8 +474,7 @@ WORD GetButtonNumber(PACKET const& packet) { return LOWORD(packet.pkButtons); }
 PACKETEXT GetDataPacketExt(HCTX context, WPARAM wparam)
 {
 	PACKETEXT packet_ext{};
-	if(WTPacket(context, wparam, &packet_ext) == 0)
-	{ spdlog::warn("Packet not found. {} {}", context->unused, wparam); }
+	MP_WARN_IF(WTPacket(context, wparam, &packet_ext) == 0)
 	return packet_ext;
 }
 

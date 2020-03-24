@@ -1,4 +1,5 @@
 #pragma once
+#include <fmt/format.h>
 #include <fstream>
 #include <iostream>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -9,15 +10,19 @@
 #define MP_HEREWIN32 (MP_HERE + mp::GetLatestErrorMessage())
 #define MP_WARN_IF(condition)                                                                                          \
 	if(condition) { spdlog::warn(MP_HERE + #condition); }
-#define MP_ERROR_IF(condition)                                                                                          \
+#define MP_WARN_IF_WHAT(condition, ...)                                                                                \
+	if(condition) { spdlog::warn(MP_HERE + #condition + ##__VA_ARGS__); }
+#define MP_ERROR_IF(condition)                                                                                         \
 	if(condition) { spdlog::error(MP_HERE + #condition); }
+#define MP_ERROR_IF_WHAT(condition, ...)                                                                               \
+	if(condition) { spdlog::error(MP_HERE + #condition + ##__VA_ARGS__); }
 #define MP_THROW_IF(condition, exception) MP_THROW_IF_WHAT(condition, exception, "")
 
-#define MP_THROW_IF_WHAT(condition, exception, what)                                                                   \
+#define MP_THROW_IF_WHAT(condition, exception, ...)                                                                    \
 	if(condition)                                                                                                      \
 	{                                                                                                                  \
-		spdlog::error(MP_HERE + #condition + what);                                                                    \
-		throw exception(MP_HERE + #condition + what);                                                                  \
+		spdlog::error(MP_HERE + #condition + fmt::format(##__VA_ARGS__));                                              \
+		throw exception(MP_HERE + #condition + fmt::format(##__VA_ARGS__));                                            \
 	}
 
 namespace mp
