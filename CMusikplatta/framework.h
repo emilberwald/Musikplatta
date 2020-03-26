@@ -15,3 +15,6 @@
 #include <memory.h>
 #include <stdlib.h>
 #include <tchar.h>
+
+// Midi Header Files
+#include "mmeapi.h"

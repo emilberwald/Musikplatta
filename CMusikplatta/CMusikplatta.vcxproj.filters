@@ -83,6 +83,9 @@
     <ClInclude Include="L0ApiWintab.h">
       <Filter>Core\Wintab</Filter>
     </ClInclude>
+    <ClInclude Include="MidiOut.h">
+      <Filter>Core\OS</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CMusikplatta.cpp">
@@ -111,6 +114,9 @@
     </ClCompile>
     <ClCompile Include="L2ApiWintab.cpp">
       <Filter>Core\Wintab</Filter>
+    </ClCompile>
+    <ClCompile Include="MidiOut.cpp">
+      <Filter>Core\OS</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

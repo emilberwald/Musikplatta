@@ -105,6 +105,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -122,6 +123,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -143,6 +145,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -164,6 +167,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -177,6 +181,7 @@
     <ClInclude Include="IProgram.h" />
     <ClInclude Include="L0ApiWintab.h" />
     <ClInclude Include="L2ApiWintab.h" />
+    <ClInclude Include="MidiOut.h" />
     <ClInclude Include="ProcessPtr.h" />
     <ClInclude Include="L1ApiWintab.h" />
     <ClInclude Include="3pp\wintab\WINTAB.H" />
@@ -194,6 +199,7 @@
     <ClCompile Include="explain_wt.cpp" />
     <ClCompile Include="L1ApiWintab.cpp" />
     <ClCompile Include="L2ApiWintab.cpp" />
+    <ClCompile Include="MidiOut.cpp" />
     <ClCompile Include="ProcessPtr.cpp" />
     <ClCompile Include="Program.cpp" />
   </ItemGroup>
