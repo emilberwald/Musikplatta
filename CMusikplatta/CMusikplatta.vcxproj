@@ -181,6 +181,7 @@
     <ClInclude Include="IProgram.h" />
     <ClInclude Include="L0ApiWintab.h" />
     <ClInclude Include="L2ApiWintab.h" />
+    <ClInclude Include="Midi.h" />
     <ClInclude Include="MidiOut.h" />
     <ClInclude Include="ProcessPtr.h" />
     <ClInclude Include="L1ApiWintab.h" />

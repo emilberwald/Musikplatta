@@ -2,6 +2,7 @@
 #include "IProgram.h"
 #include "L0ApiWintab.h"
 #include "L2ApiWintab.h"
+#include "MidiOut.h"
 
 #include <memory>
 #include <vector>
@@ -23,5 +24,8 @@ class Program: public IProgram
 	WintabDeviceCapabilities	 wintab_device_capabilities;
 	WintabCursorCapabilities	 wintab_cursor_capabilities;
 	WintabExtensionCapabilities	 wintab_extension_capabilities;
+	MidiOut						 midi_out;
+	Midi::Timbre			 current_instrument;
+	uint8_t						 current_channel;
 };
 } // namespace mp

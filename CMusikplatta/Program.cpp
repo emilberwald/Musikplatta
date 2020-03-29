@@ -3,6 +3,8 @@
 #include "Common.h"
 #include "L1ApiWintab.h"
 #include "L2ApiWintab.h"
+#include "Midi.h"
+#include "MidiOut.h"
 #include "explain_wm.h"
 #include "explain_wt.h"
 
@@ -21,6 +23,13 @@ Program::Program(): window_id(nullptr), context_descriptor(new LOGCONTEXTA{}), e
 
 Program::~Program() {}
 
+template<class T>
+T clamp(T const& min, T const& d, T const& max)
+{
+	const T t = d < min ? min : d;
+	return t > max ? max : t;
+}
+
 void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPARAM lparam)
 {
 	if(this->context == nullptr)
@@ -32,6 +41,56 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 	{
 		switch(messageType)
 		{
+			case WM_KEYDOWN:
+			{
+				switch(wparam)
+				{
+					case VK_UP:
+					{
+						this->current_instrument = static_cast<Midi::Timbre>(
+							clamp<int>(0, static_cast<int>(this->current_instrument) + 1, 127));
+						spdlog::info("VK_UP: {}", (int)this->current_instrument);
+						break;
+					}
+					case VK_DOWN:
+					{
+						this->current_instrument = static_cast<Midi::Timbre>(
+							clamp<int>(0, static_cast<int>(this->current_instrument) - 1, 127));
+						spdlog::info("VK_DOWN: {}", (int)this->current_instrument);
+						break;
+					}
+					case '0':
+					case '1':
+					case '2':
+					case '3':
+					case '4':
+					case '5':
+					case '6':
+					case '7':
+					case '8':
+					case '9':
+					{
+						this->current_channel = wparam;
+						this->midi_out.Set(this->current_instrument, this->current_channel);
+						break;
+					}
+					case 'A':
+					{
+						std::chrono::duration<double> delay{
+							1.0
+							//1.0 / static_cast<double>(this->wintab_device_capabilities.max_packet_report_rate_hz)
+						};
+						this->midi_out.Play(delay, this->current_channel, Midi::Key::A4, 100);
+						break;
+					}
+					default: break;
+				}
+				break;
+			}
+			case WM_KEYUP:
+			{
+				break;
+			}
 			case WM_ACTIVATE:
 			{
 				switch(wparam)
@@ -134,6 +193,11 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 				auto elevation = double(packet.pkOrientation.orAltitude)
 								 / (double(this->wintab_device_capabilities.orientation[1].axMax)
 									- double(this->wintab_device_capabilities.orientation[1].axMin));
+
+				this->midi_out.NoteOn(this->current_channel,
+									  static_cast<Midi::Key>(clamp<int>(0, static_cast<int>(127 * x), 127)),
+									  clamp<uint8_t>(0, normal_pressure * 127, 127));
+
 				spdlog::info("({}:{}) ({:03.5f}) ({:03.5f},{:03.5f},{:03.5f}) ({:03.5f},{:03.5f})",
 							 GetName(GetButtonState(packet)),
 							 GetButtonNumber(packet),
