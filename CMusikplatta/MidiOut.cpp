@@ -1,5 +1,12 @@
 #include "MidiOut.h"
 
+#include <chrono>
+#include <future>
+#include <thread>
+
+MidiOut::second_t MidiOut::note_off_duration = second_t{ 2.0 };
+MidiOut::second_t MidiOut::note_on_burn_in	 = second_t{ 0.001 };
+
 MidiOut::MidiOut(): midi_device(GetDevice()) {}
 
 std::shared_ptr<HMIDIOUT> MidiOut::GetDevice()
@@ -21,30 +28,70 @@ std::shared_ptr<HMIDIOUT> MidiOut::GetDevice()
 		});
 }
 
-void MidiOut::NoteOn(uint8_t channel, Midi::Key key, uint8_t velocity)
+void MidiOut::Play(uint8_t channel, Midi::Key key, uint8_t velocity)
 {
 	if(this->midi_device)
 	{
-		spdlog::info(MP_HERE + " NoteOn: {:x} {:x} {:x}", channel, (int)key, velocity);
-		midiOutShortMsg(*this->midi_device.get(),
-						GetCommand(channel, Midi::ChannelVoiceMessage::NoteOn, static_cast<uint8_t>(key), velocity));
-	}
-}
+		auto lookup = std::make_tuple(channel, key);
+		if(this->keys.count(lookup) <= 0)
+		{
+			if(velocity > 0)
+			{
+				auto noteTimestamp = std::chrono::high_resolution_clock::now();
+				auto noteState	   = static_cast<uint8_t>(key);
+				auto noteVelocity  = velocity;
+				this->keys[lookup] = std::make_tuple(noteTimestamp, NoteState::Pending, noteVelocity);
+			}
+		}
+		else
+		{
+			auto noteTimestamp = std::get<0>(this->keys[lookup]);
+			auto noteState	   = std::get<1>(this->keys[lookup]);
+			auto noteVelocity  = std::get<2>(this->keys[lookup]);
 
-void MidiOut::Play(std::chrono::duration<double, std::ratio<1>> duration,
-				   uint8_t										channel,
-				   Midi::Key									key,
-				   uint8_t										velocity)
-{
-	if(this->midi_device)
-	{
-		spdlog::info(MP_HERE + " NoteOn: {} {:x} {:x} {:x}", duration.count(), channel, (int)key, velocity);
-		midiOutShortMsg(*this->midi_device.get(),
-						GetCommand(channel, Midi::ChannelVoiceMessage::NoteOn, static_cast<uint8_t>(key), velocity));
-		std::this_thread::sleep_for(duration);
-		spdlog::info(MP_HERE + " NoteOff: {} {:x} {:x} {:x}", duration.count(), channel, (int)key, velocity);
-		midiOutShortMsg(*this->midi_device.get(),
-						GetCommand(channel, Midi::ChannelVoiceMessage::NoteOn, static_cast<uint8_t>(key), velocity));
+			if(noteState == NoteState::Pending)
+			{
+				//build up
+				if(std::chrono::high_resolution_clock::now() - noteTimestamp < note_on_burn_in)
+				{
+					if(velocity > noteVelocity)
+						this->keys[lookup] = std::make_tuple(noteTimestamp, noteState, velocity);
+					return;
+				}
+
+				midiOutShortMsg(
+					*this->midi_device.get(),
+					GetCommand(channel, Midi::ChannelVoiceMessage::NoteOn, static_cast<uint8_t>(key), noteVelocity));
+				spdlog::info(MP_HERE + " NoteOn: {:x} {:x} {:x}", channel, (int)key, noteVelocity);
+				this->keys[lookup] = std::make_tuple(noteTimestamp, NoteState::Running, noteVelocity);
+				return;
+			}
+
+			if(noteState == NoteState::Running)
+			{
+				if(velocity == 0)
+				{
+					this->keys.clear();
+					return;
+				}
+				if(this->keys.size() > 1)
+				{
+					auto me = this->keys[lookup];
+					this->keys.clear();
+					this->keys[lookup] = me;
+					spdlog::info(MP_HERE + " Aborting.");
+					return;
+				}
+
+				//re-trigger pause
+				if(std::chrono::high_resolution_clock::now() - noteTimestamp < note_off_duration) { return; }
+				midiOutShortMsg(
+					*this->midi_device.get(),
+					GetCommand(channel, Midi::ChannelVoiceMessage::NoteOff, static_cast<uint8_t>(key), velocity));
+				spdlog::info(MP_HERE + " NoteOff: {:x} {:x} {:x}", channel, (int)key, velocity);
+				this->keys.erase(lookup);
+			}
+		}
 	}
 }
 

@@ -19,16 +19,10 @@ Program::Program(): window_id(nullptr), context_descriptor(new LOGCONTEXTA{}), e
 	this->wintab_device_capabilities	= GetWintabDeviceCapabilities();
 	this->wintab_cursor_capabilities	= GetWintabCursorCapabilities();
 	this->wintab_extension_capabilities = GetWintabExtensionCapabilities();
+	MidiOut::note_on_burn_in = MidiOut::second_t{ 1.0 / this->wintab_device_capabilities.max_packet_report_rate_hz };
 }
 
 Program::~Program() {}
-
-template<class T>
-T clamp(T const& min, T const& d, T const& max)
-{
-	const T t = d < min ? min : d;
-	return t > max ? max : t;
-}
 
 void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPARAM lparam)
 {
@@ -48,14 +42,14 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 					case VK_UP:
 					{
 						this->current_instrument = static_cast<Midi::Timbre>(
-							clamp<int>(0, static_cast<int>(this->current_instrument) + 1, 127));
+							std::clamp<int>(static_cast<int>(this->current_instrument) + 1, 0, 127));
 						spdlog::info("VK_UP: {}", (int)this->current_instrument);
 						break;
 					}
 					case VK_DOWN:
 					{
 						this->current_instrument = static_cast<Midi::Timbre>(
-							clamp<int>(0, static_cast<int>(this->current_instrument) - 1, 127));
+							std::clamp<int>(static_cast<int>(this->current_instrument) - 1, 0, 127));
 						spdlog::info("VK_DOWN: {}", (int)this->current_instrument);
 						break;
 					}
@@ -76,11 +70,9 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 					}
 					case 'A':
 					{
-						std::chrono::duration<double> delay{
-							1.0
-							//1.0 / static_cast<double>(this->wintab_device_capabilities.max_packet_report_rate_hz)
-						};
-						this->midi_out.Play(delay, this->current_channel, Midi::Key::A4, 100);
+						this->midi_out.Play(this->current_channel, Midi::Key::A4, 100);
+						std::this_thread::sleep_for(MidiOut::note_on_burn_in);
+						this->midi_out.Play(this->current_channel, Midi::Key::A4, 100);
 						break;
 					}
 					default: break;
@@ -89,6 +81,15 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 			}
 			case WM_KEYUP:
 			{
+				switch(wparam)
+				{
+					case 'A':
+					{
+						this->midi_out.Play(this->current_channel, Midi::Key::A4, 0);
+						break;
+					}
+					default: break;
+				}
 				break;
 			}
 			case WM_ACTIVATE:
@@ -193,20 +194,22 @@ void Program::HandleMessage(HWND windowId, UINT messageType, WPARAM wparam, LPAR
 				auto elevation = double(packet.pkOrientation.orAltitude)
 								 / (double(this->wintab_device_capabilities.orientation[1].axMax)
 									- double(this->wintab_device_capabilities.orientation[1].axMin));
+				this->midi_out.Play(
+					this->current_channel,
+					static_cast<Midi::Key>(std::clamp<int>(static_cast<int>(127 * x), 0, 127)),
+					std::clamp<uint8_t>((normal_pressure > 0 ? std::clamp<uint8_t>(127 * normal_pressure, 1, 127) : 0),
+										0,
+										127));
 
-				this->midi_out.NoteOn(this->current_channel,
-									  static_cast<Midi::Key>(clamp<int>(0, static_cast<int>(127 * x), 127)),
-									  clamp<uint8_t>(0, normal_pressure * 127, 127));
-
-				spdlog::info("({}:{}) ({:03.5f}) ({:03.5f},{:03.5f},{:03.5f}) ({:03.5f},{:03.5f})",
-							 GetName(GetButtonState(packet)),
-							 GetButtonNumber(packet),
-							 normal_pressure,
-							 x,
-							 y,
-							 z,
-							 azimuth,
-							 elevation);
+				spdlog::debug("({}:{}) ({:03.5f}) ({:03.5f},{:03.5f},{:03.5f}) ({:03.5f},{:03.5f})",
+							  GetName(GetButtonState(packet)),
+							  GetButtonNumber(packet),
+							  normal_pressure,
+							  x,
+							  y,
+							  z,
+							  azimuth,
+							  elevation);
 				spdlog::debug("pkButtons:State {} "
 							  "pkButtons:Number {} "
 							  "pkChanged {} "

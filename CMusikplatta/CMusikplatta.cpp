@@ -25,6 +25,7 @@ void SetupConsoleWindow()
 	std::cout << "cout working" << std::endl;
 	std::cerr << "cerr working" << std::endl;
 }
+
 VOID CALLBACK timer_procedure(HWND hWnd, UINT nMsg, UINT_PTR nIDEvent, DWORD dwTime)
 {
 	spdlog::debug("Run loop. windowId={} mMsg={} nIDEvent={} dwTime={}",
